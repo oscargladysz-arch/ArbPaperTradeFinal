@@ -1,0 +1,9 @@
+config.py
+data/
+keys/
+*.pem
+__pycache__/
+*.pyc
+.DS_Store
+venv/
+.env

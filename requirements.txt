@@ -1,0 +1,6 @@
+pandas
+requests
+websockets
+sortedcontainers
+cryptography
+anthropic
