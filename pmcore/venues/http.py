@@ -9,6 +9,7 @@ import json
 import logging
 import random
 import time
+from collections.abc import Callable
 from decimal import Decimal
 from typing import Any
 
@@ -55,7 +56,9 @@ class JsonClient:
         ca_bundle: str | None = None,
         user_agent: str = "ref-mm/0.0.1 (research; read-only)",
         headers: dict[str, str] | None = None,
+        sign: Callable[[str, str], dict[str, str]] | None = None,
     ) -> None:
+        """`sign(method, full_path)` returns per-request auth headers (Kalshi read signing)."""
         verify: bool | str = ca_bundle if ca_bundle else True
         self._client = httpx.Client(
             base_url=base_url,
@@ -67,6 +70,8 @@ class JsonClient:
         self._limiter = RateLimiter(rps)
         self._max_retries = max_retries
         self.base_url = base_url
+        self._sign = sign
+        self._base_path = httpx.URL(base_url).path.rstrip("/")
 
     def close(self) -> None:
         self._client.close()
@@ -83,7 +88,8 @@ class JsonClient:
         while True:
             self._limiter.wait()
             try:
-                resp = self._client.get(path, params=clean)
+                auth_headers = self._sign("GET", self._base_path + path) if self._sign else None
+                resp = self._client.get(path, params=clean, headers=auth_headers)
             except (httpx.TransportError, httpx.TimeoutException) as exc:
                 attempt += 1
                 if attempt > self._max_retries:

@@ -23,6 +23,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from pmcore.venues.http import JsonClient
+from pmcore.venues.kalshi.auth import signer_from_env
 
 MAX_CANDLES_PER_REQUEST = 5000
 
@@ -36,10 +37,15 @@ class KalshiPublic:
         ca_bundle: str | None = None,
         rps: float = 2.0,
     ) -> None:
-        self.live = JsonClient(base_url, ca_bundle=ca_bundle, rps=rps)
+        signer = signer_from_env()
+        sign = signer.sign if signer else None
+        self.authenticated = signer is not None
+        self.live = JsonClient(base_url, ca_bundle=ca_bundle, rps=rps, sign=sign)
         hist = historical_base_url or base_url
         self.hist = (
-            self.live if hist == base_url else JsonClient(hist, ca_bundle=ca_bundle, rps=rps)
+            self.live
+            if hist == base_url
+            else JsonClient(hist, ca_bundle=ca_bundle, rps=rps, sign=sign)
         )
 
     def close(self) -> None:
