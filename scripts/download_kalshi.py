@@ -204,10 +204,13 @@ def phase_markets(k: KalshiPublic, ck: Path, since: datetime) -> None:
             seen=seen,
             kept=kept,
             unmapped_series=unmapped,
+            holdout_refused=refused,
             oldest_close=oldest.isoformat() if oldest else None,
         )
         if (oldest is not None and oldest < since) or next_cursor is None:
             prog.update(complete=True)
+            if refused:
+                holdout.log_refusal("kalshi_markets", holdout.HOLDOUT_START, refused)
             log.info(
                 "markets phase complete: %d pages, %d seen, %d kept, oldest close %s",
                 pages,
