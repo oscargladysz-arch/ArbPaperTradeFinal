@@ -99,14 +99,44 @@ kept of 230,000 seen, oldest close 2026-07-20, at the unauthenticated rate.
 
 ## 6. Workflow runs (rule 12)
 
-- `phase0-bias-audit` (run id wf_247ab9a4-551): four adversarial lenses (look-ahead,
-  side-inversion, fee math, selection bias) over the pre-registration and the core research
-  code, each finding refuted by two independent skeptics. Results in section 7.
+- `phase0-bias-audit` (run id wf_247ab9a4-551, 72 agents, 59 minutes): four adversarial
+  lenses (look-ahead, side-inversion, fee math, selection bias) over the pre-registration and
+  the core research code, each finding refuted by two independent skeptics. Results and fixes
+  in section 7.
 - Independent re-derivation of KAT numbers: not run, no numbers to re-derive.
 
-## 7. Bias-audit findings
+## 7. Bias-audit findings (workflow run wf_247ab9a4-551)
 
-(filled in below when the run completes)
+72 agents: 4 finders (look-ahead, side inversion, fee math, selection bias), then two
+independent skeptics per finding instructed to refute. 34 findings, 20 survived, 14 refuted.
+Every surviving finding was fixed in the same day and the fix is in the commit history.
+
+| # | Lens | Finding (short) | Severity after refutation | Fix |
+|---|---|---|---|---|
+| C1, C17, C14 | look-ahead, selection | Candidate blocking, the date-window check, the loader's market window, and exclusion 2 used Kalshi `close_time`, which moves earlier when an outcome is known: outcome-dependent universe selection | high | Every date now uses `expected_expiration_time` (fallback `expiration_time`); fields frozen in PREREGISTRATION 5 and 5a |
+| C2, C13 | look-ahead, selection | Settlement result written to candidate rows and shown to the reviewer who decides the universe | low to medium | Result removed from rows and page; rejection requires a rules-based reason code; page states outcomes are hidden |
+| C3 | look-ahead | Markets checkpoint stored holdout-dated rows without refusal or logging | high | Loader refuses rows whose scheduled end, settlement, or close is in the holdout window and logs the count; stored rows cleared and the sweep resumed |
+| C4 | look-ahead | An env var could relocate the holdout lock | low | Override honored only under pytest; ledger records root and lock status |
+| C5 | look-ahead | Floor-second Polymarket timestamps shrink L_ref to 1 s | low to medium | FV cutoff widened by one resolution unit; test added |
+| C6, C12 | sides, fees | KAT-3 inferred the stored reference token from whichever rows existed; could mask an inversion | high | Every print row carries `stored_reference_token_id`; one shared `in_pair_terms` helper; disagreement raises |
+| C7 | sides | Lake column named as if in YES terms | low | Docstring and column semantics fixed with the explicit reference column |
+| C8 | sides | Yes/No alignment ignored `yes_sub_title`, so the LLM was the only guard against an inverted binary pair | high | Polarity, negation, and content of the sub-title checked; test "No change" vs "cut" |
+| C9 | sides | Prereg section 2 reproduces (no defect) | none | Permanent tests pinned to the worked examples |
+| C10 | fees | Fractional counts used the unrounded rate | low to medium | Ceiling applied to fractional counts |
+| C11 | fees | Rounding unit (per print vs per order) unstated | medium | Stated in PREREGISTRATION 2.4 with the lower-bound sensitivity |
+| C15, C16 | selection | Pair universe not frozen; LLM model, limits, and the reviewed set undefined | medium | Section 5a freezes parameters and defines the universe; mapping runs write parameters and hashes to the ledger |
+| C18 | selection | Event-level blocks ignore same-day dependence | low | Two block levels, gate on the coarser, series floor of 10 |
+| C19 | selection | H2 had no test statistic | low | Pre-registered difference with CI |
+| C20 | selection | Gate H unspecified | low to medium | Tier 1 toxic rule, 200 fills, Tier 0 sign check |
+
+Refuted (kept for the record, no change): a holdout guard on the lake read path (loaders never
+write holdout rows), KAT-1 fee regimes (the paper's method imputes 0.07 for both sides), a
+"contract-weighted" KAT-1 mean (it is equal-weighted per observation as the paper does),
+two-decimal truncation of sizes (that is the venues' own precision), the Decimal fee quotient,
+the KAT-3 overlay (pre-registered and shown only for flagged pairs), the one-to-one rule (now
+in 5a), truncated Polymarket tapes (v2 has no cap), multiple comparisons across variants (the
+selection rule is a single pre-registered choice), the power rule wording, Gate 0 wording, and
+the bootstrap defaults (now asserted at gate time).
 
 ## 8. What failed or was cut
 
