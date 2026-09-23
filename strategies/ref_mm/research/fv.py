@@ -22,6 +22,10 @@ from numpy.typing import NDArray
 
 WINDOW_US = 10 * 60 * 1_000_000
 L_REF_US = 2 * 1_000_000
+# Polymarket Data API timestamps are whole seconds (floor). A print stamped 12:00:05 may have
+# happened at 12:00:05.999, so the cutoff is widened by one resolution unit less one microsecond
+# (audit finding C5): a print counts only when its whole second ended at or before t - L_ref.
+PRINT_TS_RESOLUTION_US = 1_000_000
 NO_FV = np.int64(-1)
 
 
@@ -63,10 +67,11 @@ def fv_x2_at(
     *,
     window_us: int = WINDOW_US,
     lag_us: int = L_REF_US,
+    ts_resolution_us: int = PRINT_TS_RESOLUTION_US,
 ) -> NDArray[np.int64]:
     """FV in half-ticks at each query time, or NO_FV (-1) where no print qualifies."""
     t_us = np.asarray(t_us, np.int64)
-    cutoff = t_us - lag_us
+    cutoff = t_us - lag_us - (ts_resolution_us - 1)
     buys = prints.taker_dir > 0
     sells = prints.taker_dir < 0
     bp, bok = _latest_before(prints.ts_us[buys], prints.price_ticks[buys], cutoff, window_us)

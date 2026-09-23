@@ -44,27 +44,43 @@ def align_sides(
         )
     if _is_yes_no(poly.outcomes):
         # Binary yes/no: YES token is the outcome labeled "Yes". Polarity of the questions
-        # must agree; any inversion or negation mismatch is a rejection.
-        if polarity_inverted(poly.question, kalshi_title) or polarity_inverted(
-            poly.question, kalshi_rules_primary
+        # must agree; any inversion or negation mismatch is a rejection. The Kalshi
+        # yes_sub_title states what YES means and is checked too (audit finding C8): a
+        # sub-title such as "No change" against a question about a cut must not resolve.
+        for other, name in (
+            (kalshi_title, "title"),
+            (kalshi_rules_primary, "rules"),
+            (kalshi_yes_sub_title, "yes_sub_title"),
         ):
-            return SideAlignment(
-                "REJECT",
-                None,
-                None,
-                "yes_no",
-                "inclusion/exclusion polarity inverted between questions",
-            )
-        if negation_mismatch(poly.question, kalshi_title):
-            return SideAlignment(
-                "REJECT", None, None, "yes_no", "negation present on one side only"
-            )
+            if other and polarity_inverted(poly.question, other):
+                return SideAlignment(
+                    "REJECT",
+                    None,
+                    None,
+                    "yes_no",
+                    f"inclusion/exclusion polarity inverted between the question and the Kalshi {name}",
+                )
+            if other and negation_mismatch(poly.question, other):
+                return SideAlignment(
+                    "REJECT", None, None, "yes_no", f"negation present on one side only ({name})"
+                )
+        sub = content_tokens(kalshi_yes_sub_title)
+        if sub and sub != {"yes"}:
+            shared = content_tokens(poly.question) | content_tokens(kalshi_title)
+            if not (sub & shared):
+                return SideAlignment(
+                    "UNRESOLVED",
+                    None,
+                    None,
+                    "yes_no",
+                    f"yes_sub_title {kalshi_yes_sub_title!r} shares no content with the question; YES meaning unconfirmed",
+                )
         return SideAlignment(
             "RESOLVED",
             poly.token_for_outcome("Yes"),
             "Yes",
             "yes_no",
-            "outcome labeled Yes is the reference token",
+            "outcome labeled Yes is the reference token; sub-title consistent",
         )
     # Named outcomes (teams, candidates, brackets): match yes_sub_title against labels.
     ys = content_tokens(kalshi_yes_sub_title)

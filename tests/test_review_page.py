@@ -30,6 +30,8 @@ def test_build_page_structure() -> None:
     }
     page = build(pairs, flagged, series)
     assert "rules-based reason" in page and "Will &lt;X&gt;?" in page
+    assert "kalshi_result" not in page and "result " not in page.split("Settlement results")[1][:0]
+    assert "c-reason-K-1|9" in page and "side_unconfirmed" in page
     assert "card flagged" in page and "Kalshi mid vs FV" in page
     assert "prefers-color-scheme: dark" in page and 'name="d-K-1|9"' in page
     plain = build(pairs, {}, {})

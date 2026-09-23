@@ -77,8 +77,7 @@ def test_resolution_checks() -> None:
         "title": "Unemployment above 3.0% in March 2026?",
         "yes_sub_title": "Yes",
         "rules_primary": "Resolves YES if the BLS reports ...",
-        "close_time": "2026-04-03T12:00:00Z",
-        "expiration_time": None,
+        "scheduled_end": "2026-04-03T12:00:00Z",
     }
     r = resolution.evaluate(
         "Will US unemployment be above 3.0% in March 2026?",

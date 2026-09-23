@@ -50,15 +50,17 @@ const KEY='ref_mm_review_v1'; let state={}; try{state=JSON.parse(localStorage.ge
 function save(){ try{localStorage.setItem(KEY, JSON.stringify(state))}catch(e){} refresh(); }
 function setDec(id,v){ state[id]=Object.assign(state[id]||{},{decision:v}); save(); }
 function setReason(id,v){ state[id]=Object.assign(state[id]||{},{reason:v}); save(); }
+function setReasonCode(id,v){ state[id]=Object.assign(state[id]||{},{reason_code:v}); save(); }
 function refresh(){ let a=0,r=0,m=0; for(const id of PAIR_IDS){ const s=state[id]||{}; if(s.decision==='approve')a++; else if(s.decision==='reject')r++; else m++;
   const el=document.getElementById('st-'+id); if(el){ el.textContent = s.decision? s.decision.toUpperCase() : 'undecided'; }
   const rin=document.querySelector('input[name="d-'+id+'"][value="'+(s.decision||'')+'"]'); if(rin) rin.checked=true;
-  const tx=document.getElementById('r-'+id); if(tx && s.reason!==undefined && tx.value!==s.reason) tx.value=s.reason; }
+  const tx=document.getElementById('r-'+id); if(tx && s.reason!==undefined && tx.value!==s.reason) tx.value=s.reason;
+  const sel=document.getElementById('c-reason-'+id); if(sel && s.reason_code!==undefined && sel.value!==s.reason_code) sel.value=s.reason_code; }
   document.getElementById('counts').textContent=`approved ${a} · rejected ${r} · undecided ${m} of ${PAIR_IDS.length}`; }
-function exportCsv(){ const rows=[['pair_id','kalshi_ticker','poly_market_id','condition_id','reference_token_id','reference_outcome','decision','reason','reviewed_at']];
+function exportCsv(){ const rows=[['pair_id','kalshi_ticker','poly_market_id','condition_id','reference_token_id','reference_outcome','decision','reason_code','reason_quote','reviewed_at']];
   const bad=[]; for(const p of PAIRS){ const s=state[p.pair_id]||{}; if(!s.decision){bad.push(p.pair_id+' (undecided)');continue;}
-    if(s.decision==='reject' && !(s.reason||'').trim()){bad.push(p.pair_id+' (reject without a rules-based reason)');continue;}
-    rows.push([p.pair_id,p.kalshi_ticker,p.poly_market_id,p.condition_id,p.reference_token_id,p.reference_outcome,s.decision,s.reason||'',new Date().toISOString()]); }
+    if(s.decision==='reject' && !(s.reason_code||'')){bad.push(p.pair_id+' (reject without a rules-based reason code)');continue;}
+    rows.push([p.pair_id,p.kalshi_ticker,p.poly_market_id,p.condition_id,p.reference_token_id,p.reference_outcome,s.decision,s.reason_code||'',s.reason||'',new Date().toISOString()]); }
   if(bad.length){ alert('Cannot export. Fix:\\n'+bad.slice(0,20).join('\\n')+(bad.length>20?'\\n...':'')); return; }
   const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='approved_pairs.csv'; a.click(); }
@@ -124,7 +126,7 @@ def _card(
 <div class="k">outcome labels</div><div>{_e(outcomes)} · reference outcome <b>{_e(p.get("reference_outcome"))}</b> (token {_e(p.get("reference_token_id"))})</div>
 <div class="k">description / rules</div><pre>{_e(p.get("poly_description"))}</pre></div>
 <div><div class="k">Kalshi</div><h3>{_e(p.get("kalshi_title"))}</h3>
-<div class="count">{_e(p.get("kalshi_ticker"))} · {_e(p.get("kalshi_category"))} · closes {_e(p.get("kalshi_close_time"))} · result {_e(p.get("kalshi_result"))}</div>
+<div class="count">{_e(p.get("kalshi_ticker"))} · {_e(p.get("kalshi_category"))} · scheduled end {_e(p.get("kalshi_scheduled_end"))}</div>
 <div class="k">yes_sub_title</div><div><b>{_e(p.get("kalshi_yes_sub_title"))}</b></div>
 <div class="k">rules_primary</div><pre>{_e(p.get("kalshi_rules_primary"))}</pre><div class="k">rules_secondary</div><pre>{_e(p.get("kalshi_rules_secondary"))}</pre></div></div>
 <div class="k">side alignment</div><div><span class="badge">{_e(p.get("side_status"))}</span> {_e(p.get("side_method"))}: {_e(p.get("side_reason"))}</div>
@@ -134,7 +136,8 @@ def _card(
 <div class="dec"><span class="badge" id="st-{_e(pid)}">undecided</span>
 <label><input type="radio" name="d-{_e(pid)}" value="approve" onchange="setDec('{_e(pid)}','approve')"> approve (identical resolution, side confirmed)</label>
 <label><input type="radio" name="d-{_e(pid)}" value="reject" onchange="setDec('{_e(pid)}','reject')"> reject</label>
-<input type="text" id="r-{_e(pid)}" placeholder="rules-based reason (required for reject; never a price-path reason)" oninput="setReason('{_e(pid)}',this.value)"></div></div>"""
+<select id="c-reason-{_e(pid)}" onchange="setReasonCode('{_e(pid)}',this.value)"><option value="">rules-based reason (required for reject)</option><option value="underlying">different underlying / entity</option><option value="threshold">different threshold or unit</option><option value="date_window">different date window</option><option value="source">different resolution source</option><option value="tie_handling">different tie / cancellation handling</option><option value="side_unconfirmed">side alignment unconfirmed</option></select>
+<input type="text" id="r-{_e(pid)}" placeholder="optional: quote the decisive rules text" oninput="setReason('{_e(pid)}',this.value)"></div></div>"""
 
 
 def build(
@@ -163,7 +166,7 @@ def build(
     )
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pair Review</title><style>{CSS}</style></head>
 <body><header><b>ref_mm pair review</b> · <span id="counts" class="count"></span> · <button type="button" onclick="exportCsv()">Export approved_pairs.csv</button>
-<div class="rule">A pair may be rejected <b>only for a documented rules-based reason</b> (different underlying, threshold, date window, resolution source, or tie/cancellation handling, or an unconfirmed side alignment). Never reject because of its price path or because the venues resolved differently: divergent resolution is a real cost and stays in the sample. Save the exported file as <code>data/approved_pairs.csv</code>.</div></header>
+<div class="rule">A pair may be rejected <b>only for a documented rules-based reason</b> (different underlying, threshold, date window, resolution source, or tie/cancellation handling, or an unconfirmed side alignment). Never reject because of its price path or because the venues resolved differently: divergent resolution is a real cost and stays in the sample. Settlement results are deliberately not shown on this page (the universe must be decided without knowledge of outcomes). Save the exported file as <code>data/approved_pairs.csv</code>.</div></header>
 {cards}
 <script>const PAIR_IDS={ids}; const PAIRS={slim}; const SERIES={json.dumps(series)};{JS}</script></body></html>"""
 

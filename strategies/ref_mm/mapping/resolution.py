@@ -94,29 +94,41 @@ def check_date_window(
     poly_q: str,
     poly_end: str | None,
     kalshi_title: str,
-    kalshi_close: str | None,
-    kalshi_exp: str | None,
+    kalshi_scheduled_end: str | None,
     tolerance: timedelta = timedelta(days=3),
 ) -> Check:
+    """Compares the Polymarket scheduled endDate with the Kalshi SCHEDULED end
+    (expected_expiration_time, fallback expiration_time). Never the actual close_time, which
+    Kalshi moves earlier once an outcome is known (audit finding C1)."""
     py, ky = extract_years(poly_q), extract_years(kalshi_title)
     if py and ky and py != ky:
         return Check("date_window", "FAIL", f"years {sorted(py)} vs {sorted(ky)}")
     pd_, kd = extract_dates(poly_q), extract_dates(kalshi_title)
     if pd_ and kd and {(m, d) for m, d, _ in pd_} != {(m, d) for m, d, _ in kd}:
         return Check("date_window", "FAIL", f"dates {sorted(pd_)} vs {sorted(kd)}")
-    if poly_end and (kalshi_close or kalshi_exp):
+    if poly_end and kalshi_scheduled_end:
         try:
             pe = parse_ts(poly_end)
-            ke = parse_ts(kalshi_close or kalshi_exp or "")
+            ke = parse_ts(kalshi_scheduled_end)
         except ValueError:
             return Check("date_window", "UNKNOWN", "unparseable end dates")
         gap = abs(pe - ke)
         if gap > timedelta(days=45):
-            return Check("date_window", "FAIL", f"end dates {gap.days} days apart")
+            return Check(
+                "date_window",
+                "FAIL",
+                f"scheduled ends {gap.days} days apart (field: expected_expiration_time)",
+            )
         if gap > tolerance:
-            return Check("date_window", "UNKNOWN", f"end dates {gap.days} days apart")
-        return Check("date_window", "PASS", f"end dates within {gap}")
-    return Check("date_window", "UNKNOWN", "missing end date on one side")
+            return Check(
+                "date_window",
+                "UNKNOWN",
+                f"scheduled ends {gap.days} days apart (field: expected_expiration_time)",
+            )
+        return Check(
+            "date_window", "PASS", f"scheduled ends within {gap} (field: expected_expiration_time)"
+        )
+    return Check("date_window", "UNKNOWN", "missing scheduled end date on one side")
 
 
 def check_source(poly_desc: str, kalshi_rules: str) -> Check:
@@ -166,9 +178,7 @@ def evaluate(
         (
             check_underlying(poly_q, title, k.get("yes_sub_title") or ""),
             check_threshold(poly_q, title, rules),
-            check_date_window(
-                poly_q, poly_end, title, k.get("close_time"), k.get("expiration_time")
-            ),
+            check_date_window(poly_q, poly_end, title, k.get("scheduled_end")),
             check_source(poly_desc, rules),
             check_tie_handling(poly_desc, rules),
         )

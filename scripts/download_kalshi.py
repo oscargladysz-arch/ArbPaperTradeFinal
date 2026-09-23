@@ -105,13 +105,27 @@ def series_of(event_ticker: str, series_map: dict[str, dict[str, Any]]) -> tuple
     return None, "none"
 
 
+def scheduled_end(row: dict[str, Any]) -> datetime | None:
+    """The ex-ante scheduled end of a market: expected_expiration_time, else the legacy
+    expiration_time, never close_time (which Kalshi moves earlier once an outcome is known;
+    audit finding C1). Returns None when neither is present."""
+    for k in ("expected_expiration_time", "expiration_time"):
+        v = row.get(k)
+        if v:
+            try:
+                return parse_ts(v)
+            except NormalizeError:
+                continue
+    return None
+
+
 def keep_market(row: dict[str, Any], srow: dict[str, Any] | None) -> bool:
-    """PREREGISTRATION D7: drop markets that live under 24 hours unless their series is
-    identified and is not hourly or fifteen_min (same-day sports markets stay)."""
+    """PREREGISTRATION D7: drop markets scheduled to live under 24 hours unless their series is
+    identified and is not hourly or fifteen_min (same-day sports markets stay). Lifetime uses the
+    scheduled end, not the actual close (audit C1)."""
     try:
-        lifetime_h = (
-            parse_ts(row["close_time"]) - parse_ts(row["open_time"])
-        ).total_seconds() / 3600
+        end_t = scheduled_end(row) or parse_ts(row["close_time"])
+        lifetime_h = (end_t - parse_ts(row["open_time"])).total_seconds() / 3600
     except (KeyError, TypeError, NormalizeError):
         return True
     if lifetime_h >= 24:
@@ -138,6 +152,7 @@ def phase_markets(k: KalshiPublic, ck: Path, since: datetime) -> None:
     kept = int(prog.state.get("kept", 0))
     seen = int(prog.state.get("seen", 0))
     unmapped = int(prog.state.get("unmapped_series", 0))
+    refused = int(prog.state.get("holdout_refused", 0))
     for items, next_cursor in k.historical_markets(
         mve_filter="exclude", page_limit=1000, start_cursor=cursor
     ):
@@ -159,6 +174,16 @@ def phase_markets(k: KalshiPublic, ck: Path, since: datetime) -> None:
                 if srow is None:
                     unmapped += 1
                 if m.get("mve_selected_legs") or not keep_market(row, srow):
+                    continue
+                sched = scheduled_end(row)
+                settle = parse_ts(row["settlement_ts"]) if row.get("settlement_ts") else None
+                stamp = (
+                    max(x for x in (sched, settle, dt) if x is not None)
+                    if any(x is not None for x in (sched, settle, dt))
+                    else None
+                )
+                if stamp is not None and holdout.is_locked() and stamp >= holdout.HOLDOUT_START:
+                    refused += 1
                     continue
                 row["series_ticker"] = st
                 row["series_match"] = how

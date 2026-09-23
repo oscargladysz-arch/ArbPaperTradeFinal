@@ -18,6 +18,7 @@ import polars as pl
 from pmcore.data.holdout import repo_root
 from pmcore.lake.parquet import scan
 from pmcore.ledger.runs import record_run
+from pmcore.venues.polymarket.normalize import in_pair_terms
 from strategies.ref_mm.research.fv import NO_FV, PrintSeries, fv_x2_at
 
 
@@ -36,25 +37,25 @@ def pair_series(
     p = (
         scan("polymarket", "trades")
         .filter(pl.col("condition_id") == condition_id)
-        .select(["ts_us", "yes_price_ticks", "taker_dir", "token_id", "on_reference_token"])
+        .select(
+            [
+                "ts_us",
+                "yes_price_ticks",
+                "taker_dir",
+                "token_id",
+                "on_reference_token",
+                "stored_reference_token_id",
+            ]
+        )
         .collect()
     )
     if c.height == 0 or p.height == 0:
         return np.array([], np.int64), np.array([], np.int64), np.array([], np.int64)
-    # The lake stores prints in terms of token_ids[0]; re-express in terms of the pair's reference token.
-    stored_ref_is_pair_ref = (
-        bool(
-            p.filter(pl.col("on_reference_token"))["token_id"].head(1).to_list()
-            == [reference_token_id]
-        )
-        if p.filter(pl.col("on_reference_token")).height
-        else True
-    )
+    # Re-express in the pair's reference token from the stored reference column; never inferred
+    # from whichever rows happen to be present (audit findings C6, C12).
+    p = in_pair_terms(p, reference_token_id)
     price = p["yes_price_ticks"].to_numpy().astype(np.int64)
     d = np.where(p["taker_dir"].to_numpy() == "buy", 1, -1).astype(np.int64)
-    if not stored_ref_is_pair_ref:
-        price = 10000 - price
-        d = -d
     ps = PrintSeries.from_arrays(p["ts_us"].to_numpy().astype(np.int64), price, d)
     t = c["end_ts_us"].to_numpy().astype(np.int64)
     fv = fv_x2_at(ps, t)

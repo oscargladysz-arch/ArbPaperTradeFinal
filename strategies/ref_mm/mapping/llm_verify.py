@@ -78,7 +78,7 @@ def build_prompt(pair: dict[str, str]) -> str:
         f"  reference outcome (the one we map to Kalshi YES): {pair.get('reference_outcome', '')}\n"
         f"  end date: {pair.get('poly_end_date', '')}\n  description/rules: {pair.get('poly_description', '')[:2500]}\n\n"
         f"KALSHI\n  title: {pair.get('kalshi_title', '')}\n  yes_sub_title: {pair.get('kalshi_yes_sub_title', '')}\n"
-        f"  close/expiration: {pair.get('kalshi_close_time', '')} / {pair.get('kalshi_expiration_time', '')}\n"
+        f"  scheduled end: {pair.get('kalshi_scheduled_end', '')}\n"
         f"  rules_primary: {pair.get('kalshi_rules_primary', '')[:2500]}\n  rules_secondary: {pair.get('kalshi_rules_secondary', '')[:1500]}\n\n"
         f"Deterministic pre-checks: {pair.get('checks_summary', '')}\n"
     )

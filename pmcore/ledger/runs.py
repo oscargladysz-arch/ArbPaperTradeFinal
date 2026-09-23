@@ -74,6 +74,8 @@ def record_run(
         "code_commit": git_commit(),
         "code_dirty": git_dirty(),
         "prereg_hash": prereg_hash(),
+        "repo_root": str(repo_root()),
+        "holdout_locked": (repo_root() / "research" / "holdout.lock").exists(),
         "window": {"start": window[0], "end": window[1]},
         "metrics": metrics,
         "notes": notes,

@@ -35,17 +35,20 @@ class FeeError(ValueError):
 
 
 def fee_dollars_unrounded(
-    contracts: int, price: int, rate: Decimal, multiplier: Decimal
+    contracts: int | Decimal, price: int, rate: Decimal, multiplier: Decimal
 ) -> Decimal:
     """multiplier * rate * C * P * (1 - P) in dollars, no rounding. Exact Decimal."""
     check_price(price)
-    if contracts < 0:
+    c = Decimal(contracts)
+    if c < 0:
         raise FeeError(f"contracts must be non-negative, got {contracts}")
     p = to_decimal_dollars(price)
-    return multiplier * rate * Decimal(contracts) * p * (_ONE - p)
+    return multiplier * rate * c * p * (_ONE - p)
 
 
-def fee_cents_charged(contracts: int, price: int, rate: Decimal, multiplier: Decimal) -> int:
+def fee_cents_charged(
+    contracts: int | Decimal, price: int, rate: Decimal, multiplier: Decimal
+) -> int:
     """The fee Kalshi actually charges on one order: unrounded fee rounded UP to the next cent.
 
     Returns whole cents. 50 contracts at 0.44 with maker multiplier 1 -> 22 cents.
@@ -55,22 +58,23 @@ def fee_cents_charged(contracts: int, price: int, rate: Decimal, multiplier: Dec
     return int(cents)
 
 
-def maker_fee_cents(contracts: int, price: int, multiplier: Decimal) -> int:
+def maker_fee_cents(contracts: int | Decimal, price: int, multiplier: Decimal) -> int:
     return fee_cents_charged(contracts, price, MAKER_RATE, multiplier)
 
 
-def taker_fee_cents(contracts: int, price: int, multiplier: Decimal = Decimal(1)) -> int:
+def taker_fee_cents(contracts: int | Decimal, price: int, multiplier: Decimal = Decimal(1)) -> int:
     return fee_cents_charged(contracts, price, TAKER_RATE, multiplier)
 
 
-def fee_ticks_per_contract(fee_cents: int, contracts: int) -> Decimal:
+def fee_ticks_per_contract(fee_cents: int, contracts: int | Decimal) -> Decimal:
     """Allocate a charged fee across the contracts of the order, in ticks, exact Decimal.
 
     22 cents over 50 contracts = 2200 ticks / 50 = 44 ticks per contract (0.0044 dollars).
     """
-    if contracts <= 0:
+    c = Decimal(contracts)
+    if c <= 0:
         raise FeeError("contracts must be positive to allocate a fee")
-    return Decimal(fee_cents) * Decimal(TICKS_PER_DOLLAR // 100) / Decimal(contracts)
+    return Decimal(fee_cents) * Decimal(TICKS_PER_DOLLAR // 100) / c
 
 
 # Fee types observed on GET /series/fee_changes and GET /series (2026-09-23), see ASSUMPTIONS K-FEE-5.

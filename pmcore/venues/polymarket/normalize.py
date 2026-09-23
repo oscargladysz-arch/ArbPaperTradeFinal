@@ -102,7 +102,10 @@ def parse_gamma_market(raw: dict[str, Any]) -> GammaMarket:
 
 @dataclass(frozen=True, slots=True)
 class PolyPrint:
-    """One Polymarket fill in the pair's YES terms."""
+    """One Polymarket fill expressed in terms of `stored_reference_token_id` (the token the
+    caller passed as reference; in the lake this is clobTokenIds[0], a storage convention, NOT
+    the pair's YES). `yes_price_ticks` and `taker_dir` are relative to that token. Use
+    `in_pair_terms` to re-express a frame in a pair's reference token (audit findings C6, C7)."""
 
     condition_id: str
     ts: datetime
@@ -111,6 +114,7 @@ class PolyPrint:
     size_x100: int
     token_id: str
     on_reference_token: bool
+    stored_reference_token_id: str
     tx_hash: str
     raw: str
 
@@ -124,6 +128,7 @@ class PolyPrint:
             "size_x100": self.size_x100,
             "token_id": self.token_id,
             "on_reference_token": self.on_reference_token,
+            "stored_reference_token_id": self.stored_reference_token_id,
             "tx_hash": self.tx_hash,
             "raw": self.raw,
         }
@@ -165,6 +170,33 @@ def normalize_data_api_trade(
         size_x100=int(size * 100),
         token_id=token,
         on_reference_token=on_ref,
+        stored_reference_token_id=reference_token_id,
         tx_hash=str(raw.get("transaction_hash") or raw.get("transactionHash") or ""),
         raw=json.dumps(raw, sort_keys=True, separators=(",", ":"), default=str),
+    )
+
+
+def in_pair_terms(df: Any, reference_token_id: str) -> Any:
+    """Re-express a prints DataFrame (polars) in the pair's reference token: rows stored under
+    a different reference get price -> 10000 - price and buy/sell flipped. Raises if the frame
+    mixes stored references or lacks the column, so an inversion can never be masked."""
+    import polars as pl
+
+    if "stored_reference_token_id" not in df.columns:
+        raise NormalizeError(
+            "prints frame lacks stored_reference_token_id; re-download with the current loader"
+        )
+    refs = df["stored_reference_token_id"].unique().to_list()
+    if len(refs) != 1:
+        raise NormalizeError(f"prints frame mixes stored references: {refs}")
+    if refs[0] == reference_token_id:
+        return df
+    return df.with_columns(
+        (MAX_PRICE_TICKS - pl.col("yes_price_ticks")).alias("yes_price_ticks"),
+        pl.when(pl.col("taker_dir") == "buy")
+        .then(pl.lit("sell"))
+        .otherwise(pl.lit("buy"))
+        .alias("taker_dir"),
+        pl.lit(reference_token_id).alias("stored_reference_token_id"),
+        (~pl.col("on_reference_token")).alias("on_reference_token"),
     )

@@ -37,8 +37,20 @@ from pmcore.venues.polymarket.normalize import GammaMarket, NormalizeError
 from strategies.ref_mm.mapping import llm_verify, resolution, sides
 from strategies.ref_mm.mapping.text import content_tokens, jaccard
 
+# Frozen pair-level parameters (PREREGISTRATION section 5a; audit finding C15).
 CANDIDATE_MIN_JACCARD = 0.25
 DATE_WINDOW = timedelta(days=45)
+FROZEN_PARAMS: dict[str, Any] = {
+    "candidate_min_jaccard": CANDIDATE_MIN_JACCARD,
+    "date_window_days": DATE_WINDOW.days,
+    "date_pass_tolerance_days": 3,
+    "underlying_min_jaccard": 0.34,
+    "underlying_pass_jaccard": 0.6,
+    "kalshi_time_field": "expected_expiration_time, fallback expiration_time; never close_time",
+    "polymarket_time_field": "endDate",
+    "llm_model": None,  # filled at run time from REF_MM_LLM_MODEL or the default
+    "one_to_one": "ties rejected, never resolved by score",
+}
 
 
 def _gamma_from_row(r: dict[str, Any]) -> GammaMarket:
@@ -54,6 +66,11 @@ def _gamma_from_row(r: dict[str, Any]) -> GammaMarket:
         event_id=r.get("event_id"),
         raw=str(r.get("raw") or ""),
     )
+
+
+def kalshi_scheduled_end(k: dict[str, Any]) -> str | None:
+    """Scheduled end only (audit finding C1): close_time reflects early determination."""
+    return k.get("expected_expiration_time") or k.get("expiration_time") or None
 
 
 def generate_candidates(
@@ -73,7 +90,7 @@ def generate_candidates(
         ptoks[p.market_id] = content_tokens(p.question)
     out = []
     for k in kalshi:
-        close = k.get("close_time") or k.get("expiration_time")
+        close = kalshi_scheduled_end(k)
         if not close:
             continue
         kd = parse_ts(close).date()
@@ -101,9 +118,7 @@ def evaluate_candidate(
         "kalshi_yes_sub_title": k.get("yes_sub_title") or "",
         "kalshi_rules_primary": k.get("rules_primary") or "",
         "kalshi_rules_secondary": k.get("rules_secondary") or "",
-        "kalshi_close_time": k.get("close_time") or "",
-        "kalshi_expiration_time": k.get("expiration_time") or "",
-        "kalshi_result": k.get("result") or "",
+        "kalshi_scheduled_end": kalshi_scheduled_end(k) or "",
         "poly_market_id": p.market_id,
         "condition_id": p.condition_id,
         "poly_question": p.question,
@@ -137,8 +152,7 @@ def evaluate_candidate(
             "yes_sub_title": base["kalshi_yes_sub_title"],
             "rules_primary": base["kalshi_rules_primary"],
             "rules_secondary": base["kalshi_rules_secondary"],
-            "close_time": k.get("close_time"),
-            "expiration_time": k.get("expiration_time"),
+            "scheduled_end": kalshi_scheduled_end(k),
         },
     )
     base["checks_summary"] = rep.summary()

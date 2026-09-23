@@ -14,7 +14,10 @@ inclusive, locked by `research/holdout.lock` until Oscar deletes it.
 - H1 (primary): Kalshi fills priced at least 3 cents better than Polymarket fair value (FV)
   earn positive net FV markouts after maker fees and adverse selection.
 - H2 (secondary): the effect is stronger on the favorite side (maker's contract price above
-  0.50), consistent with the favorite-longshot bias.
+  0.50), consistent with the favorite-longshot bias. Test statistic: the difference in
+  contract-weighted mean net 1-hour FV markout in the edge >= +3 cents bucket between fills
+  with maker paid price >= 0.50 and fills below 0.50, with a block-bootstrap 95% CI; H2 is
+  supported only if the CI lower bound > 0. Every other horizon and bucket cell is descriptive.
 
 ## 2. Definitions (all prices in YES terms, stored as integer ticks, 1 cent = 100 ticks)
 
@@ -48,6 +51,13 @@ Charged fee per order = round_up_to_cent(M_maker * 0.0175 * C * P * (1 - P)) dol
 the price the maker paid (YES price for a YES maker, 1 - yes_price for a NO maker), C the
 contracts in the fill, and M_maker the series maker multiplier in force on the fill date
 (0 on series without maker fees). Per-contract fee = charged fee / C. (Decision D2.)
+
+Unit of rounding: Kalshi rounds per order, but maker order ids are not public, so the research
+rounds per print (each public trade is treated as one order). Per-print rounding is an upper
+bound on the per-order charge (a resting order filled in several prints pays one rounding, not
+several). The unrounded rate M_maker * 0.0175 * P * (1 - P) is reported alongside as the
+lower-bound sensitivity. Gate L compares the live fee model with the ledger per order, not with
+this per-print number. Fractional contract counts (count_fp) are rounded the same way.
 
 Example A, 50 contracts at 0.44: raw = 1 * 0.0175 * 50 * 0.44 * 0.56 = 0.2156 dollars,
 charged = 0.22 dollars, per contract = 0.22 / 50 = 0.0044.
@@ -87,12 +97,38 @@ from the 1-minute candle bid and ask closes.
 - Category: Kalshi's series `category` field (Decision D5).
 
 ## 5. Fixed exclusions (never tuned)
-1. Sports fills at or after the scheduled start time.
-2. Fills in the final 30 minutes before scheduled settlement.
+1. Sports fills at or after the scheduled start time, taken from Kalshi's `occurrence_datetime`
+   or Polymarket's `gameStartTime` captured ex ante; where neither exists the fill stays in.
+2. Fills in the final 30 minutes before the SCHEDULED end: Kalshi `expected_expiration_time`
+   (fallback the legacy `expiration_time`), never `settlement_ts` and never `close_time`, which
+   Kalshi moves earlier once an outcome is determined. The same scheduled field defines the
+   pair date-window check and the market-window filter of the loaders.
 3. Maker paid prices outside [0.03, 0.97].
 4. Any fill without a valid FV at t - L_ref.
 5. Pairs excluded only for a documented rules-based reason recorded in `data/approved_pairs.csv`.
    Price paths and divergent resolutions are never reasons.
+
+## 5a. Pair universe, frozen (audit findings C15, C16)
+- Candidate blocking: token Jaccard >= 0.25 between the Polymarket question and the Kalshi title
+  plus yes_sub_title, and scheduled ends within 45 days.
+- Deterministic checks: underlying Jaccard >= 0.60 PASS, 0.34 to 0.60 UNKNOWN, below FAIL;
+  thresholds equal with unit and strictness; scheduled ends within 3 days PASS, 3 to 45 days
+  UNKNOWN, beyond FAIL; resolution source and tie handling as in `resolution.py`.
+- Side alignment must be RESOLVED deterministically (`sides.py`); inverted pairs are rejected,
+  never flipped.
+- LLM pass on every surviving pair: model id recorded in `research/runs.jsonl` by the mapping
+  run; default REJECT; a MATCH requires every dimension true and side alignment "same".
+- One-to-one: a Kalshi market with more than one accepted counterparty, or vice versa, is
+  rejected, never resolved by score.
+- The universe is every row of `data/candidate_pairs.csv` with decision ACCEPT from a full run
+  (no `--limit`, no `--offline`; the run's SHA-256 of that file is in the ledger) minus the pairs
+  Oscar rejects in `data/approved_pairs.csv`, and only after a review round with zero errors in
+  the random sample. If a fix is needed, the root cause is fixed, the pipeline re-run in full,
+  and a new sample drawn with seed 20240101 + round number; all pairs approved in earlier
+  rounds stay approved. Tier 0 refuses to run unless the approved_pairs hash it reads matches
+  a ledger entry from such a run.
+- The review page never shows settlement results or price paths (except the KAT-3 overlay
+  for flagged pairs, whose flag is itself pre-registered).
 
 ## 6. Gates (verbatim from the spec)
 - Gate 0: in the >= +3 cent bucket, mean net 1-hour FV markout > 0 with CI lower bound > 0, on
@@ -104,7 +140,9 @@ from the 1-minute candle bid and ask closes.
 - Gate 2: the Phase 2 variant, unchanged, has net P&L per contract > 0 with CI lower bound > 0
   under the conservative queue model at placeholder latency, and >= 0 at twice that latency. If
   the pick-off race p50 is faster than our latency, the strategy is reported infeasible.
-- Gate H: holdout net P&L per contract > 0 and >= 50% of the in-sample point estimate.
+- Gate H: Tier 1 toxic-rule net P&L per contract of the frozen variant on the holdout, on
+  >= 200 holdout fills, point estimate > 0 and >= 50% of the in-sample toxic estimate; the Tier 0
+  edge >= +3 cents 1-hour markout on the holdout is reported alongside and its sign must agree.
 - Gate L: >= 200 live fills, realized net FV markout > 0 (CI reported), realized fill rate and
   markouts inside the simulator's 90% prediction intervals, fee model error of 0 cents per
   order, zero risk-limit breaches.
@@ -116,9 +154,13 @@ Selection: the variant with the highest 95% CI lower bound on net P&L per contra
 toxic fill rule, among variants with >= 500 fills. Final once chosen.
 
 ## 8. Statistics
-- 95% confidence intervals: block bootstrap by event, 10,000 resamples, percentile method,
-  fixed seed 20240101. Each Kalshi event (event_ticker) is one block; all fills of an event
-  move together.
+- 95% confidence intervals: block bootstrap, 10,000 resamples, percentile method, fixed seed
+  20240101, under two block definitions: (a) Kalshi event (event_ticker) and (b) the coarser
+  series_ticker by calendar day. Gates use the coarser block (b); (a) is reported alongside.
+  Gate 0 additionally requires >= 10 distinct series_tickers in the bucket. The seed and
+  resample count are asserted at gate time and written to the ledger; a lower bound within 0.05
+  cents of zero is reported with a 20-seed sensitivity band and treated as inconclusive if any
+  seed flips it.
 - Markout standard deviation is reported. Power: for the primary metric, the minimum
   detectable effect at 80% power and alpha 0.05 is computed from the observed SD and the
   effective sample size (events). If the observed mean is below the MDE, the result is
@@ -167,3 +209,4 @@ trade yes_price 0.44, taker_side no, settles YES. Maker holds YES at 0.44: c = 1
 ## 11. Change log
 - v1, 2026-09-23: initial draft.
 - v1 (same day, still unsigned): added D7 to D10 and section 9a after verifying the APIs, the fee schedules, and the paper.
+- v1 (same day, still unsigned): after the rule-12 bias audit (run wf_247ab9a4-551): fee rounding unit stated (2.4), exclusion fields frozen (5), pair universe frozen (5a), H2 statistic, Gate H specification, two-level block bootstrap and seed policy (8).

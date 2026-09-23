@@ -53,22 +53,15 @@ def trade_returns(
     maker_paid = MAX_PRICE_TICKS - taker_paid
     taker_payoff = yes_payoff if taker_side == "yes" else no_payoff
     maker_payoff = MAX_PRICE_TICKS - taker_payoff
-    n = int(count) if count == count.to_integral_value() else 0
     if include_fees:
-        # Charged per order; approximated per fill (K-FEE-1/2). Fractional counts use the
-        # unrounded rate because the round-up unit is unknown for them.
-        if n > 0:
-            tf = fee_ticks_per_contract(
-                fee_cents_charged(n, taker_paid, TAKER_RATE, taker_multiplier), n
-            )
-            mf = fee_ticks_per_contract(
-                fee_cents_charged(n, maker_paid, MAKER_RATE, maker_multiplier), n
-            )
-        else:
-            p = Decimal(taker_paid) / MAX_PRICE_TICKS
-            q = Decimal(maker_paid) / MAX_PRICE_TICKS
-            tf = taker_multiplier * TAKER_RATE * p * (1 - p) * MAX_PRICE_TICKS
-            mf = maker_multiplier * MAKER_RATE * q * (1 - q) * MAX_PRICE_TICKS
+        # Charged per order and rounded up to the cent, fractional counts included
+        # (PREREGISTRATION D2; audit finding C10).
+        tf = fee_ticks_per_contract(
+            fee_cents_charged(count, taker_paid, TAKER_RATE, taker_multiplier), count
+        )
+        mf = fee_ticks_per_contract(
+            fee_cents_charged(count, maker_paid, MAKER_RATE, maker_multiplier), count
+        )
     else:
         tf = mf = Decimal(0)
     taker_pnl = Decimal(taker_payoff - taker_paid) - tf
