@@ -1,5 +1,5 @@
+import os
 import ssl
-ssl._create_default_https_context = ssl._create_unverified_context
 
 # ---- engine.py — Prediction Market Arbitrage Paper Trading Engine ----
 #     filter requiring return > risk-free rate for the holding
@@ -625,10 +625,10 @@ class PairManager:
 # ---- SSL + AUTH ----
 
 def make_ssl_context():
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-    return ctx
+    """TLS verification is always on (CLAUDE.md rule 7). A proxy CA bundle may be trusted
+    via REF_MM_CA_BUNDLE; verification is never disabled."""
+    bundle = os.environ.get("REF_MM_CA_BUNDLE")
+    return ssl.create_default_context(cafile=bundle) if bundle else ssl.create_default_context()
 
 def load_private_key():
     with open(KALSHI_PRIVATE_KEY_PATH, 'rb') as f:
