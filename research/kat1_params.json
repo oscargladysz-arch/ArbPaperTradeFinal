@@ -1,0 +1,13 @@
+{
+  "paper_params_verified": false,
+  "window_start": "2024-01-01",
+  "window_end": "2025-06-30",
+  "universe": "all settled binary markets with a yes/no result (PLACEHOLDER until the paper is read)",
+  "return_basis": "per_dollar_staked",
+  "include_fees": true,
+  "weighting": "contract",
+  "expected_taker_pct": -32.0,
+  "expected_maker_pct": -10.0,
+  "tolerance_pct": 3.0,
+  "notes": "Fill window_start, window_end, universe, return_basis from Burgi, Deng, Whelan (2025) in docs/refs/, then set paper_params_verified to true. KAT-1 refuses PASS until then."
+}

@@ -1,3 +1,10 @@
+> **Project direction (2026-09-23):** this repository now hosts **ref_mm**, a Kalshi maker
+> strategy priced off Polymarket Global fair value, built as a gated research program. The
+> authoritative specification is `docs/SPEC_ref_mm.md`; the standing rules are in `CLAUDE.md`;
+> the current phase report is `docs/reports/PHASE_0.md`. New code lives in `pmcore/`,
+> `strategies/ref_mm/`, and `scripts/`. The arbitrage code described below is frozen reference
+> material and is not imported by the new code.
+
 # ArbPaperTrade
 
 Cross-platform prediction market arbitrage system. Detects pricing dislocations
