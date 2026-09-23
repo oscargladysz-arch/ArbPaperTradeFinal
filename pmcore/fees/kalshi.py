@@ -73,13 +73,32 @@ def fee_ticks_per_contract(fee_cents: int, contracts: int) -> Decimal:
     return Decimal(fee_cents) * Decimal(TICKS_PER_DOLLAR // 100) / Decimal(contracts)
 
 
+# Fee types observed on GET /series/fee_changes and GET /series (2026-09-23), see ASSUMPTIONS K-FEE-5.
+# `quadratic`: takers pay fee_multiplier * 0.07 * C * P * (1 - P); makers pay nothing.
+# `quadratic_with_maker_fees`: takers as above; makers pay fee_multiplier * 0.0175 * C * P * (1 - P)
+#   (the maker rate is 25% of the taker rate, per the fee schedule and the Aug 2026 changelog).
+# `quadratic_with_combo_maker_fees`: combo (MVE) markets, maker factor 50% instead of 25%; MVE
+#   markets are excluded from this research, so the type is accepted but never priced.
+# `flat` and `margin_market_maker_program_fees` (perps): not event-contract quadratic fees; refused.
+MAKER_FACTOR_BY_FEE_TYPE: dict[str, Decimal] = {
+    "quadratic": Decimal(0),
+    "quadratic_with_maker_fees": Decimal(1),
+    "quadratic_with_combo_maker_fees": Decimal(2),
+}
+
+
+def maker_multiplier_from(fee_type: str, fee_multiplier: Decimal) -> Decimal:
+    """Spec M_maker: the series multiplier when the fee type charges makers, else 0."""
+    if fee_type not in MAKER_FACTOR_BY_FEE_TYPE:
+        raise FeeError(
+            f"fee_type {fee_type!r} is not an event-contract quadratic schedule (K-FEE-5)"
+        )
+    return fee_multiplier * MAKER_FACTOR_BY_FEE_TYPE[fee_type]
+
+
 @dataclass(frozen=True, slots=True)
 class FeeRegime:
-    """The fee parameters in force for one series from `effective_ts` onward.
-
-    fee_type: "quadratic" is the P * (1 - P) schedule above. Any other value raises until it is
-    verified and implemented (ASSUMPTIONS K-FEE-5).
-    """
+    """The fee parameters in force for one series from `effective_ts` onward."""
 
     series_ticker: str
     effective_ts: datetime
@@ -91,11 +110,25 @@ class FeeRegime:
     def __post_init__(self) -> None:
         if self.effective_ts.tzinfo is None:
             raise FeeError("effective_ts must be timezone-aware")
-        if self.fee_type != "quadratic":
+        if self.fee_type not in MAKER_FACTOR_BY_FEE_TYPE:
             raise FeeError(
                 f"fee_type {self.fee_type!r} on {self.series_ticker} is not implemented; "
                 "verify the schedule first (ASSUMPTIONS K-FEE-5)"
             )
+
+    @classmethod
+    def from_api(
+        cls,
+        series_ticker: str,
+        effective_ts: datetime,
+        fee_type: str,
+        fee_multiplier: Decimal | str | int,
+        source: str,
+    ) -> FeeRegime:
+        m = Decimal(str(fee_multiplier))
+        return cls(
+            series_ticker, effective_ts, fee_type, m, maker_multiplier_from(fee_type, m), source
+        )
 
 
 class FeeSchedule:

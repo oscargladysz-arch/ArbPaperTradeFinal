@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Resumable Polymarket Global read-only downloader (rules 10 and 12). Background usage:
 
+VERIFIED 2026-09-23: Gamma /markets/keyset (limit 100, after_cursor, end_date_min/max) and Data
+API /v2/trades (seek cursor, no cap observed at 40,000 rows). See the client docstrings.
+
     nohup .venv/bin/python scripts/download_polymarket.py --phase all > data/checkpoints/polymarket/log.txt 2>&1 &
 
 Phases: markets (Gamma closed markets whose endDate falls in the window, paged by narrow

@@ -1,0 +1,134 @@
+{
+  "at": "2026-09-23T22:54:29+00:00",
+  "host": "vm",
+  "platform": "Linux-6.18.44-fc-v37-x86_64-with-glibc2.39",
+  "python": "3.12.11",
+  "note": "no VPN, no proxy, TLS verified; read-only",
+  "rest": [
+    {
+      "name": "polymarket_gamma_markets",
+      "url": "https://gamma-api.polymarket.com/markets?limit=1&closed=true",
+      "status": 200,
+      "ms": 371,
+      "body_head": "[{\"id\":\"12\",\"question\":\"Will Joe Biden get Coronavirus before the election?\",\"conditionId\":\"0xe3b423dfad8c22ff75c9899c4e8176f628cf4ad4caa00481764d320e7415f7a9\",\"slug\":\"will-joe-biden-get-coronavirus-before-the-election\",\"twitterCardImage\":\"https://polymarket-static.s3.us-east-2.amazonaws.com/polymarket-twitter-card.png\",\"endDate\":\"2020-11-04T00:00:00Z\",\"category\":\"US-current-affairs\",\"liquidity\":\"",
+      "geoblock_hint": false
+    },
+    {
+      "name": "polymarket_gamma_events",
+      "url": "https://gamma-api.polymarket.com/events?limit=1",
+      "status": 200,
+      "ms": 167,
+      "body_head": "[{\"id\":\"2890\",\"ticker\":\"nba-will-the-mavericks-beat-the-grizzlies-by-more-than-5pt5-points-in-their-december-4-matchup\",\"slug\":\"nba-will-the-mavericks-beat-the-grizzlies-by-more-than-5pt5-points-in-their-december-4-matchup\",\"title\":\"NBA: Will the Mavericks beat the Grizzlies by more than 5.5 points in their December 4 matchup?\",\"description\":\"In the upcoming NBA game, scheduled for December 4:\\n\\n",
+      "geoblock_hint": false
+    },
+    {
+      "name": "polymarket_clob_time",
+      "url": "https://clob.polymarket.com/time",
+      "status": 200,
+      "ms": 256,
+      "body_head": "1790204070",
+      "geoblock_hint": false
+    },
+    {
+      "name": "polymarket_clob_ok",
+      "url": "https://clob.polymarket.com/",
+      "status": 200,
+      "ms": 404,
+      "body_head": "\"OK\"",
+      "geoblock_hint": false
+    },
+    {
+      "name": "polymarket_data_trades",
+      "url": "https://data-api.polymarket.com/trades?limit=1",
+      "status": 200,
+      "ms": 180,
+      "body_head": "[{\"proxyWallet\":\"0xc69bd5567b40ef4d11922eaa57e1f9be1c642076\",\"side\":\"BUY\",\"asset\":\"33339798372916037220786136133406478491116150628220441951753426683441228279665\",\"conditionId\":\"0xefa17dee3af09f69f9ddf245b969aa4efbe7c71cdf06ee49d694408bc33e2ed2\",\"size\":5,\"price\":0.002,\"timestamp\":1790203777,\"title\":\"Will Shakhtar Donetsk win the 2026-27 UEFA Champions League Championship?\",\"slug\":\"will-shakhtar-don",
+      "geoblock_hint": false
+    },
+    {
+      "name": "polymarket_geoblock",
+      "url": "https://polymarket.com/api/geoblock",
+      "status": 200,
+      "ms": 223,
+      "body_head": "{\"blocked\":true,\"ip\":\"160.79.106.137\",\"country\":\"US\",\"region\":\"OH\"}",
+      "geoblock_hint": false
+    },
+    {
+      "name": "kalshi_status",
+      "url": "https://api.elections.kalshi.com/trade-api/v2/exchange/status",
+      "status": 200,
+      "ms": 145,
+      "body_head": "{\"exchange_active\":true,\"exchange_index_statuses\":[{\"description\":\"Default\",\"exchange_active\":true,\"exchange_index\":0,\"intra_exchange_transfers_active\":true,\"trading_active\":true},{\"description\":\"Combos\",\"exchange_active\":true,\"exchange_index\":1,\"intra_exchange_transfers_active\":true,\"trading_active\":true},{\"description\":\"Crypto \\u0026 Commodities\",\"exchange_active\":true,\"exchange_index\":2,\"intra_",
+      "geoblock_hint": false
+    },
+    {
+      "name": "kalshi_trades",
+      "url": "https://api.elections.kalshi.com/trade-api/v2/markets/trades?limit=1",
+      "status": 200,
+      "ms": 175,
+      "body_head": "{\"cursor\":\"EhIKEAcjkZN9ObF3unmVtmp6BgIaDAinsdHVBhDw54DEAw\",\"trades\":[{\"count_fp\":\"5.79\",\"created_time\":\"2026-09-23T22:54:31.947926Z\",\"is_block_trade\":false,\"no_price_dollars\":\"0.0810\",\"taker_book_side\":\"ask\",\"taker_outcome_side\":\"no\",\"taker_side\":\"no\",\"ticker\":\"KXBTC15M-26SEP231900-00\",\"trade_id\":\"07239193-7d39-b177-ba79-95b66a7a0602\",\"yes_price_dollars\":\"0.9190\"}]}",
+      "geoblock_hint": false
+    },
+    {
+      "name": "kalshi_fee_changes",
+      "url": "https://api.elections.kalshi.com/trade-api/v2/series/fee_changes?show_historical=true",
+      "status": 200,
+      "ms": 173,
+      "body_head": "{\"series_fee_change_arr\":[{\"fee_multiplier\":0,\"fee_type\":\"margin_market_maker_program_fees\",\"id\":\"b6b67a93-fc63-4d19-8961-e7e065a42b51\",\"scheduled_ts\":\"2026-09-23T04:00:00Z\",\"series_ticker\":\"KXPLATINUMPERP\"},{\"fee_multiplier\":0,\"fee_type\":\"margin_market_maker_program_fees\",\"id\":\"866e0aba-5754-4328-9536-c099453269ad\",\"scheduled_ts\":\"2026-09-23T04:00:00Z\",\"series_ticker\":\"KXPALLADIUMPERP\"},{\"fee_mul",
+      "geoblock_hint": false
+    },
+    {
+      "name": "kalshi_hist_cutoff_elections",
+      "url": "https://api.elections.kalshi.com/trade-api/v2/historical/cutoff",
+      "status": 200,
+      "ms": 173,
+      "body_head": "{\"market_positions_last_updated_ts\":\"2026-07-25T00:00:00Z\",\"market_settled_ts\":\"2026-07-25T00:00:00Z\",\"orders_updated_ts\":\"2026-07-25T00:00:00Z\",\"trades_created_ts\":\"2026-07-25T00:00:00Z\"}",
+      "geoblock_hint": false
+    },
+    {
+      "name": "kalshi_hist_cutoff_external",
+      "url": "https://external-api.kalshi.com/trade-api/v2/historical/cutoff",
+      "status": 200,
+      "ms": 165,
+      "body_head": "{\"market_positions_last_updated_ts\":\"2026-07-25T00:00:00Z\",\"market_settled_ts\":\"2026-07-25T00:00:00Z\",\"orders_updated_ts\":\"2026-07-25T00:00:00Z\",\"trades_created_ts\":\"2026-07-25T00:00:00Z\"}",
+      "geoblock_hint": false
+    },
+    {
+      "name": "kalshi_hist_markets_elections",
+      "url": "https://api.elections.kalshi.com/trade-api/v2/historical/markets?limit=1",
+      "status": 200,
+      "ms": 162,
+      "body_head": "{\"cursor\":\"CgsItfCP0wYQ0NCjeBI5S1hNVkVTUE9SVFNNVUxUSUdBTUVFWFRFTkRFRC1TMjAyNjNEMzhDRTU3QjY2LUM2OEJBOTM5RkZE\",\"markets\":[{\"can_close_early\":true,\"close_time\":\"2026-07-24T23:45:19Z\",\"created_time\":\"2026-07-24T23:41:41.252242Z\",\"custom_strike\":{\"Associated Events\":\"KXBTC15M-26JUL241945,KXBTCD-26JUL2420,KXDOGE15M-26JUL241945,KXETH15M-26JUL241945,KXSOL15M-26JUL241945,KXXRP15M-26JUL241945\",\"Associated M",
+      "geoblock_hint": false
+    },
+    {
+      "name": "kalshi_hist_markets_external",
+      "url": "https://external-api.kalshi.com/trade-api/v2/historical/markets?limit=1",
+      "status": 200,
+      "ms": 165,
+      "body_head": "{\"cursor\":\"CgsItfCP0wYQ0NCjeBI5S1hNVkVTUE9SVFNNVUxUSUdBTUVFWFRFTkRFRC1TMjAyNjNEMzhDRTU3QjY2LUM2OEJBOTM5RkZE\",\"markets\":[{\"can_close_early\":true,\"close_time\":\"2026-07-24T23:45:19Z\",\"created_time\":\"2026-07-24T23:41:41.252242Z\",\"custom_strike\":{\"Associated Events\":\"KXBTC15M-26JUL241945,KXBTCD-26JUL2420,KXDOGE15M-26JUL241945,KXETH15M-26JUL241945,KXSOL15M-26JUL241945,KXXRP15M-26JUL241945\",\"Associated M",
+      "geoblock_hint": false
+    },
+    {
+      "name": "fred_dtb3_csv",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTB3",
+      "status": 200,
+      "ms": 192,
+      "body_head": "observation_date,DTB3\n1954-01-04,1.33\n1954-01-05,1.28\n1954-01-06,1.28\n1954-01-07,1.31\n1954-01-08,1.31\n1954-01-11,1.33\n1954-01-12,1.30\n1954-01-13,1.30\n1954-01-14,1.28\n1954-01-15,1.20\n1954-01-18,1.20\n1954-01-19,\n1954-01-20,1.16\n1954-01-21,1.08\n1954-01-22,1.00\n1954-01-25,1.00\n1954-01-26,1.00\n1954-01-27,1.08\n1954-01-28,0.96\n1954-01-29,1.02\n1954-02-01,1.04\n1954-02-02,1.00\n1954-02-03,1.02\n1954-02-04,1.0",
+      "geoblock_hint": false
+    },
+    {
+      "name": "public_ip",
+      "url": "https://api.ipify.org?format=json",
+      "status": 200,
+      "ms": 347,
+      "body_head": "{\"ip\":\"160.79.106.136\"}",
+      "geoblock_hint": false
+    }
+  ],
+  "ws": {
+    "name": "polymarket_ws",
+    "url": "wss://ws-subscriptions-clob.polymarket.com/ws/market",
+    "error": "could not fetch a token id: <HTTPError 403: 'Forbidden'>"
+  }
+}

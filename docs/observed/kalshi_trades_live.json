@@ -1,0 +1,29 @@
+{
+    "cursor": "EhIKEAcjkZzVObKObSY7daTk7LkaDAjssNHVBhCgkqzOAg",
+    "trades": [
+        {
+            "count_fp": "1.67",
+            "created_time": "2026-09-23T22:53:32.701172Z",
+            "is_block_trade": false,
+            "no_price_dollars": "0.6300",
+            "taker_book_side": "ask",
+            "taker_outcome_side": "no",
+            "taker_side": "no",
+            "ticker": "KXGOLD15M-26SEP231900-00",
+            "trade_id": "0723919c-d9f1-b700-623d-ff8c8578f3dc",
+            "yes_price_dollars": "0.3700"
+        },
+        {
+            "count_fp": "37.01",
+            "created_time": "2026-09-23T22:53:32.701172Z",
+            "is_block_trade": false,
+            "no_price_dollars": "0.6300",
+            "taker_book_side": "ask",
+            "taker_outcome_side": "no",
+            "taker_side": "no",
+            "ticker": "KXGOLD15M-26SEP231900-00",
+            "trade_id": "0723919c-d539-b28e-6d26-3b75a4e4ecb9",
+            "yes_price_dollars": "0.3700"
+        }
+    ]
+}

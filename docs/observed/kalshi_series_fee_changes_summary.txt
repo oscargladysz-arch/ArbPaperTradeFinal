@@ -1,0 +1,27 @@
+n 149
+Counter({'quadratic_with_maker_fees': 64, 'quadratic': 55, 'margin_market_maker_program_fees': 26, 'quadratic_with_combo_maker_fees': 4})
+[('1', 74), ('0', 56), ('0.5', 19)]
+[
+ {
+  "fee_multiplier": 0,
+  "fee_type": "margin_market_maker_program_fees",
+  "id": "b6b67a93-fc63-4d19-8961-e7e065a42b51",
+  "scheduled_ts": "2026-09-23T04:00:00Z",
+  "series_ticker": "KXPLATINUMPERP"
+ },
+ {
+  "fee_multiplier": 0,
+  "fee_type": "margin_market_maker_program_fees",
+  "id": "866e0aba-5754-4328-9536-c099453269ad",
+  "scheduled_ts": "2026-09-23T04:00:00Z",
+  "series_ticker": "KXPALLADIUMPERP"
+ },
+ {
+  "fee_multiplier": 0,
+  "fee_type": "margin_market_maker_program_fees",
+  "id": "5573f0c6-215a-47e3-8df9-e2c61a4df918",
+  "scheduled_ts": "2026-09-10T04:00:00Z",
+  "series_ticker": "KXSILVERPERP"
+ }
+]
+min ts 2025-10-04T07:00:00Z

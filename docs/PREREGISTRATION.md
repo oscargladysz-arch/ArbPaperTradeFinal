@@ -130,10 +130,24 @@ toxic fill rule, among variants with >= 500 fills. Final once chosen.
   observations. Example: window 2026-01-01 to 2026-06-22, daily rates averaging 4.20 -> 4.20%.
 
 ## 9. Data
-Kalshi public REST (trades with taker_side, 1-minute candles, settlements, fee regimes);
-Polymarket Gamma metadata and Data API trades, with on-chain fills as primary where the Data
-API truncates; Predexon ticks for Tier 2 (in-sample slices only until the holdout unlocks).
-Every loader refuses holdout rows while the lock exists.
+Kalshi public REST via the `/historical/*` namespace (the historical cutoff of 2026-07-25
+covers the whole in-sample window): trades with `taker_outcome_side`, 1-minute candles,
+archived market records with `result`, `settlement_ts`, and the closing book; fee regimes per
+ASSUMPTIONS K-FEE-7. Polymarket Gamma keyset metadata and Data API v2 trades; on-chain fills
+as a completeness check; Predexon ticks for Tier 2 (in-sample slices only until the holdout
+unlocks). Every loader refuses holdout rows while the lock exists.
+
+## 9a. KAT-1 method (frozen; ASSUMPTIONS KAT-1)
+Window 2021-06-01 to 2025-04-30 (paper: inception through April 2025). Universe: settled
+markets with volume_fp >= 1,000 contracts, closing spread <= 20 cents, open >= 24 hours.
+Observations: last trade before close and the last trade before the same time on each of up
+to 10 prior days; two contracts per trade (taker's and maker's). Returns: pre-fee
+(y - p) / p; post-fee (y - p - c) / (p + c), c = round_up_to_cent(0.07 * 100 * p * (1 - p)) / 100
+applied to both sides (the paper's imputation). Equal-weighted means. Pass: makers within 3
+points of -11.99% and takers within 3 points of -31.46%, makers > takers. Worked example: last
+trade yes_price 0.44, taker_side no, settles YES. Maker holds YES at 0.44: c = 1.73 / 100 =
+0.0173; post-fee return = (1 - 0.44 - 0.0173) / (0.44 + 0.0173) = +1.1868. Taker holds NO at
+0.56: c = 0.0173; post-fee return = (0 - 0.56 - 0.0173) / (0.56 + 0.0173) = -1.0.
 
 ## 10. Decisions that require Oscar's sign-off (defaults in force until changed before signing)
 
@@ -145,6 +159,11 @@ Every loader refuses holdout rows while the lock exists.
 | D4 | Primary mean is contract-weighted. | Contract-weighted. |
 | D5 | Category taxonomy is Kalshi's series category. | Kalshi category. |
 | D6 | Money resolution is 1/100 cent ticks; Kalshi sub-penny markets are handled at their tick size. | Yes. |
+| D7 | Kalshi series whose `frequency` is hourly or fifteen_min are outside the universe (their markets live under 24 hours; they are 83% of the archive by count; the KAT-1 paper excludes them; the 10-minute FV window and the 30-minute pre-settlement exclusion leave almost nothing tradeable in them). This is a structural, ex-ante exclusion, never a price-based one. | Excluded. |
+| D8 | Kalshi block trades (`is_block_trade = true`) are excluded from the strategy analysis (they are negotiated off-book, so no resting quote could have been filled). KAT-1 keeps them, as the paper does not exclude them. | Excluded from Tier 0 to 2; kept in KAT-1. |
+| D9 | Maker fee regime by date follows ASSUMPTIONS K-FEE-7: no maker fees before 2025-05-13, then the archived schedule lists, then the API fee-change feed. Fills before a market's `fee_waiver_expiration_time` are fee-free. | Yes. |
+| D10 | Polymarket prints come from Data API v2 (`/v2/trades`, taker side, cursor-paged, no cap); on-chain fills are a completeness check on a sample, not the primary source. | Yes. |
 
 ## 11. Change log
 - v1, 2026-09-23: initial draft.
+- v1 (same day, still unsigned): added D7 to D10 and section 9a after verifying the APIs, the fee schedules, and the paper.

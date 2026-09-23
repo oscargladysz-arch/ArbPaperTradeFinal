@@ -1,0 +1,31 @@
+{
+ "ticker": "HIGHNY-24JUN02-B79.5",
+ "note": "1-minute candles for a 2024 archived market: 22 candles returned for a 1-day window; only minutes with book changes appear; fields volume and open_interest are strings without the _fp suffix; price OHLC null when no trade",
+ "sample": [
+  {
+   "end_period_ts": 1717250760,
+   "open_interest": "0.00",
+   "price": {
+    "close": null,
+    "high": null,
+    "low": null,
+    "mean": null,
+    "open": null,
+    "previous": null
+   },
+   "volume": "0.00",
+   "yes_ask": {
+    "close": "0.9900",
+    "high": "0.9900",
+    "low": "0.9900",
+    "open": "0.9900"
+   },
+   "yes_bid": {
+    "close": "0.0000",
+    "high": "0.0000",
+    "low": "0.0000",
+    "open": "0.0000"
+   }
+  }
+ ]
+}

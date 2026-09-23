@@ -72,6 +72,7 @@ class KalshiTrade:
     taker_side: Side
     maker_side: Side
     maker_paid_ticks: int
+    is_block_trade: bool
     raw: str
 
     def as_row(self) -> dict[str, Any]:
@@ -86,14 +87,25 @@ class KalshiTrade:
             "taker_side": self.taker_side,
             "maker_side": self.maker_side,
             "maker_paid_ticks": self.maker_paid_ticks,
+            "is_block_trade": self.is_block_trade,
             "raw": self.raw,
         }
 
 
 def normalize_trade(raw: dict[str, Any]) -> KalshiTrade:
-    taker = str(raw.get("taker_side", "")).lower()
+    # K-API-7 (VERIFIED 2026-09-23): `taker_outcome_side` is canonical; `taker_side` is the
+    # deprecated alias and `taker_book_side` the same bit in bid/ask vocabulary (bid = yes).
+    taker = str(raw.get("taker_outcome_side") or raw.get("taker_side") or "").lower()
     if taker not in ("yes", "no"):
-        raise NormalizeError(f"taker_side must be yes or no, got {raw.get('taker_side')!r}")
+        raise NormalizeError(f"taker side must be yes or no, got {raw.get('taker_outcome_side')!r}")
+    legacy = str(raw.get("taker_side") or "").lower()
+    if legacy and legacy != taker:
+        raise NormalizeError(f"taker_side {legacy!r} disagrees with taker_outcome_side {taker!r}")
+    book = str(raw.get("taker_book_side") or "").lower()
+    if book and book != ("bid" if taker == "yes" else "ask"):
+        raise NormalizeError(
+            f"taker_book_side {book!r} disagrees with taker outcome side {taker!r}"
+        )
     yes = _price_ticks(raw, "yes_price_dollars", "yes_price")
     no = _price_ticks(raw, "no_price_dollars", "no_price")
     if yes is None and no is None:
@@ -123,37 +135,48 @@ def normalize_trade(raw: dict[str, Any]) -> KalshiTrade:
         taker_side=taker_side,
         maker_side=maker_side,
         maker_paid_ticks=maker_paid,
-        raw=json.dumps(raw, sort_keys=True, separators=(",", ":")),
+        is_block_trade=bool(raw.get("is_block_trade", False)),
+        raw=json.dumps(raw, sort_keys=True, separators=(",", ":"), default=str),
     )
 
 
+# K-API-14 (VERIFIED 2026-09-23 against docs/refs/kalshi-openapi.yaml Market schema). Category and
+# series ticker are NOT on the market; they come from the series (joined by the loader).
 MARKET_KEYS = (
     "ticker",
     "event_ticker",
-    "series_ticker",
+    "market_type",
     "title",
     "subtitle",
     "yes_sub_title",
     "no_sub_title",
     "rules_primary",
     "rules_secondary",
-    "category",
     "status",
     "result",
     "open_time",
     "close_time",
     "expiration_time",
     "expected_expiration_time",
+    "latest_expiration_time",
     "settlement_ts",
-    "settlement_value",
-    "tick_size",
+    "settlement_value_dollars",
+    "fee_waiver_expiration_time",
+    "occurrence_datetime",
+    "early_close_condition",
     "price_level_structure",
-    "response_price_units",
-    "market_type",
+    "price_ranges",
     "strike_type",
     "floor_strike",
     "cap_strike",
+    "functional_strike",
     "custom_strike",
+    "volume_fp",
+    "yes_bid_dollars",
+    "yes_ask_dollars",
+    "last_price_dollars",
+    "is_provisional",
+    "can_close_early",
 )
 
 
@@ -165,14 +188,37 @@ def market_row(raw: dict[str, Any]) -> dict[str, Any]:
         "close_time",
         "expiration_time",
         "expected_expiration_time",
+        "latest_expiration_time",
         "settlement_ts",
+        "fee_waiver_expiration_time",
+        "occurrence_datetime",
     ):
         v = row.get(k)
-        row[k] = parse_ts(v).isoformat() if v not in (None, "") else None
-    for k in ("floor_strike", "cap_strike", "custom_strike", "settlement_value", "tick_size"):
+        try:
+            row[k] = parse_ts(v).isoformat() if v not in (None, "") else None
+        except NormalizeError:
+            row[k] = None
+    for k in (
+        "floor_strike",
+        "cap_strike",
+        "functional_strike",
+        "custom_strike",
+        "price_ranges",
+        "settlement_value_dollars",
+        "volume_fp",
+        "yes_bid_dollars",
+        "yes_ask_dollars",
+        "last_price_dollars",
+    ):
         v = row.get(k)
-        row[k] = None if v is None else str(v)
-    row["raw"] = json.dumps(raw, sort_keys=True, separators=(",", ":"))
+        row[k] = (
+            None
+            if v is None
+            else (
+                json.dumps(v, sort_keys=True, default=str) if isinstance(v, dict | list) else str(v)
+            )
+        )
+    row["raw"] = json.dumps(raw, sort_keys=True, separators=(",", ":"), default=str)
     return row
 
 
@@ -204,5 +250,5 @@ def candle_row(ticker: str, raw: dict[str, Any]) -> dict[str, Any]:
     out["open_interest_x100"] = int(
         Decimal(str(raw.get("open_interest_fp", raw.get("open_interest", 0)) or 0)) * 100
     )
-    out["raw"] = json.dumps(raw, sort_keys=True, separators=(",", ":"))
+    out["raw"] = json.dumps(raw, sort_keys=True, separators=(",", ":"), default=str)
     return out

@@ -1,0 +1,181 @@
+{
+    "cursor": "CgsIr_CP0wYQyNn2VxI5S1hNVkVTUE9SVFNNVUxUSUdBTUVFWFRFTkRFRC1TMjAyNkM1RkE4QTVDNEU3LTY3OUM2ODhCQjgz",
+    "markets": [
+        {
+            "can_close_early": true,
+            "close_time": "2026-07-24T23:45:19Z",
+            "created_time": "2026-07-24T23:41:41.252242Z",
+            "custom_strike": {
+                "Associated Events": "KXBTC15M-26JUL241945,KXBTCD-26JUL2420,KXDOGE15M-26JUL241945,KXETH15M-26JUL241945,KXSOL15M-26JUL241945,KXXRP15M-26JUL241945",
+                "Associated Market Sides": "no,yes,yes,no,yes,yes",
+                "Associated Markets": "KXBTC15M-26JUL241945-45,KXBTCD-26JUL2420-T64099.99,KXDOGE15M-26JUL241945-45,KXETH15M-26JUL241945-45,KXSOL15M-26JUL241945-45,KXXRP15M-26JUL241945-45",
+                "Multivariate Event Ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S20263D38CE57B66"
+            },
+            "event_ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S20263D38CE57B66",
+            "exchange_index": 0,
+            "expected_expiration_time": "2026-07-25T05:30:00Z",
+            "expiration_time": "2026-07-25T00:00:00Z",
+            "expiration_value": "",
+            "last_price_dollars": "0.2070",
+            "latest_expiration_time": "2026-07-25T00:00:00Z",
+            "liquidity_dollars": "0.0000",
+            "market_type": "binary",
+            "mve_collection_ticker": "KXMVESPORTSMULTIGAMEEXTENDED-R",
+            "mve_selected_legs": [
+                {
+                    "event_ticker": "KXBTC15M-26JUL241945",
+                    "market_ticker": "KXBTC15M-26JUL241945-45",
+                    "side": "no"
+                },
+                {
+                    "event_ticker": "KXBTCD-26JUL2420",
+                    "market_ticker": "KXBTCD-26JUL2420-T64099.99",
+                    "side": "yes"
+                },
+                {
+                    "event_ticker": "KXDOGE15M-26JUL241945",
+                    "market_ticker": "KXDOGE15M-26JUL241945-45",
+                    "side": "yes"
+                },
+                {
+                    "event_ticker": "KXETH15M-26JUL241945",
+                    "market_ticker": "KXETH15M-26JUL241945-45",
+                    "side": "no"
+                },
+                {
+                    "event_ticker": "KXSOL15M-26JUL241945",
+                    "market_ticker": "KXSOL15M-26JUL241945-45",
+                    "side": "yes"
+                },
+                {
+                    "event_ticker": "KXXRP15M-26JUL241945",
+                    "market_ticker": "KXXRP15M-26JUL241945-45",
+                    "side": "yes"
+                }
+            ],
+            "no_ask_dollars": "1.0000",
+            "no_bid_dollars": "0.0000",
+            "no_sub_title": "no Target Price: $64,112.47,yes $64,100 or above,yes Target Price: $0.0694572,no Target Price: $1,859.54,yes Target Price: $73.8310,yes Target Price: $1.0905",
+            "notional_value_dollars": "1.0000",
+            "open_interest_fp": "0.00",
+            "open_time": "2026-07-24T23:41:41Z",
+            "previous_price_dollars": "0.0000",
+            "previous_yes_ask_dollars": "0.0000",
+            "previous_yes_bid_dollars": "0.0000",
+            "price_level_structure": "deci_cent",
+            "price_ranges": [
+                {
+                    "end": "1.0000",
+                    "start": "0.0000",
+                    "step": "0.0010"
+                }
+            ],
+            "result": "no",
+            "rules_primary": "",
+            "rules_secondary": "Kalshi is not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Governing League. All trademarks, logos, and brand names are the property of their respective owners.",
+            "settlement_timer_seconds": 5,
+            "settlement_ts": "2026-07-24T23:45:26.01375Z",
+            "settlement_value_dollars": "0.0000",
+            "status": "finalized",
+            "strike_type": "custom",
+            "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S20263D38CE57B66-C68BA939FFD",
+            "title": "no Target Price: $64,112.47,yes $64,100 or above,yes Target Price: $0.0694572,no Target Price: $1,859.54,yes Target Price: $73.8310,yes Target Price: $1.0905",
+            "updated_time": "2026-07-24T23:45:26.488927Z",
+            "volume_24h_fp": "0.00",
+            "volume_fp": "22.88",
+            "yes_ask_dollars": "1.0000",
+            "yes_ask_size_fp": "0.00",
+            "yes_bid_dollars": "0.0000",
+            "yes_bid_size_fp": "0.00",
+            "yes_sub_title": "no Target Price: $64,112.47,yes $64,100 or above,yes Target Price: $0.0694572,no Target Price: $1,859.54,yes Target Price: $73.8310,yes Target Price: $1.0905"
+        },
+        {
+            "can_close_early": true,
+            "close_time": "2026-07-24T23:45:19Z",
+            "created_time": "2026-07-24T23:41:35.184397Z",
+            "custom_strike": {
+                "Associated Events": "KXBTC15M-26JUL241945,KXDOGE15M-26JUL241945,KXETH15M-26JUL241945,KXMLBSPREAD-26JUL241840KCDET,KXSOL15M-26JUL241945,KXXRP15M-26JUL241945",
+                "Associated Market Sides": "no,yes,no,yes,yes,yes",
+                "Associated Markets": "KXBTC15M-26JUL241945-45,KXDOGE15M-26JUL241945-45,KXETH15M-26JUL241945-45,KXMLBSPREAD-26JUL241840KCDET-DET2,KXSOL15M-26JUL241945-45,KXXRP15M-26JUL241945-45",
+                "Multivariate Event Ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S2026C5FA8A5C4E7"
+            },
+            "event_ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S2026C5FA8A5C4E7",
+            "exchange_index": 0,
+            "expected_expiration_time": "2026-07-25T05:30:00Z",
+            "expiration_time": "2026-07-27T22:40:00Z",
+            "expiration_value": "",
+            "last_price_dollars": "0.3180",
+            "latest_expiration_time": "2026-07-27T22:40:00Z",
+            "liquidity_dollars": "0.0000",
+            "market_type": "binary",
+            "mve_collection_ticker": "KXMVESPORTSMULTIGAMEEXTENDED-R",
+            "mve_selected_legs": [
+                {
+                    "event_ticker": "KXBTC15M-26JUL241945",
+                    "market_ticker": "KXBTC15M-26JUL241945-45",
+                    "side": "no"
+                },
+                {
+                    "event_ticker": "KXDOGE15M-26JUL241945",
+                    "market_ticker": "KXDOGE15M-26JUL241945-45",
+                    "side": "yes"
+                },
+                {
+                    "event_ticker": "KXETH15M-26JUL241945",
+                    "market_ticker": "KXETH15M-26JUL241945-45",
+                    "side": "no"
+                },
+                {
+                    "event_ticker": "KXMLBSPREAD-26JUL241840KCDET",
+                    "market_ticker": "KXMLBSPREAD-26JUL241840KCDET-DET2",
+                    "side": "yes"
+                },
+                {
+                    "event_ticker": "KXSOL15M-26JUL241945",
+                    "market_ticker": "KXSOL15M-26JUL241945-45",
+                    "side": "yes"
+                },
+                {
+                    "event_ticker": "KXXRP15M-26JUL241945",
+                    "market_ticker": "KXXRP15M-26JUL241945-45",
+                    "side": "yes"
+                }
+            ],
+            "no_ask_dollars": "1.0000",
+            "no_bid_dollars": "0.0000",
+            "no_sub_title": "no Target Price: $64,112.47,yes Target Price: $0.0694572,no Target Price: $1,859.54,yes Detroit wins by over 1.5 runs,yes Target Price: $73.8310,yes Target Price: $1.0905",
+            "notional_value_dollars": "1.0000",
+            "open_interest_fp": "0.00",
+            "open_time": "2026-07-24T23:41:35Z",
+            "previous_price_dollars": "0.0000",
+            "previous_yes_ask_dollars": "0.0000",
+            "previous_yes_bid_dollars": "0.0000",
+            "price_level_structure": "deci_cent",
+            "price_ranges": [
+                {
+                    "end": "1.0000",
+                    "start": "0.0000",
+                    "step": "0.0010"
+                }
+            ],
+            "result": "no",
+            "rules_primary": "",
+            "rules_secondary": "Kalshi is not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Governing League. All trademarks, logos, and brand names are the property of their respective owners.",
+            "settlement_timer_seconds": 5,
+            "settlement_ts": "2026-07-24T23:45:26.013884Z",
+            "settlement_value_dollars": "0.0000",
+            "status": "finalized",
+            "strike_type": "custom",
+            "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S2026C5FA8A5C4E7-679C688BB83",
+            "title": "no Target Price: $64,112.47,yes Target Price: $0.0694572,no Target Price: $1,859.54,yes Detroit wins by over 1.5 runs,yes Target Price: $73.8310,yes Target Price: $1.0905",
+            "updated_time": "2026-07-24T23:45:26.488927Z",
+            "volume_24h_fp": "0.00",
+            "volume_fp": "3.00",
+            "yes_ask_dollars": "1.0000",
+            "yes_ask_size_fp": "0.00",
+            "yes_bid_dollars": "0.0000",
+            "yes_bid_size_fp": "0.00",
+            "yes_sub_title": "no Target Price: $64,112.47,yes Target Price: $0.0694572,no Target Price: $1,859.54,yes Detroit wins by over 1.5 runs,yes Target Price: $73.8310,yes Target Price: $1.0905"
+        }
+    ]
+}

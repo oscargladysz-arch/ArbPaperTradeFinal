@@ -1,0 +1,1 @@
+{"error":{"code":"bad_request","message":"bad request","details":"requested time range with candlesticks: 1666666.666667, max candlesticks: 5000"}}

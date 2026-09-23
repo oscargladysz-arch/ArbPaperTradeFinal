@@ -1,8 +1,20 @@
 """Kalshi public REST client (no key). Read-only.
 
-Endpoint paths and parameter names below are ASSUMPTIONS until verified against
-https://docs.kalshi.com (ids K-API-*). Every method names its assumption id. Observed behavior
-is logged by the loaders and, where it differs from docs, recorded in docs/ASSUMPTIONS.md.
+VERIFIED 2026-09-23 against docs/refs/kalshi-openapi.yaml and live calls (docs/observed/):
+- Live base https://api.elections.kalshi.com/trade-api/v2; external-api.kalshi.com serves the
+  same /historical/* responses (K-API-2).
+- GET /historical/cutoff: trades_created_ts and market_settled_ts were 2026-07-25, so the whole
+  in-sample window is historical.
+- GET /historical/markets: limit <= 1000, cursor, and exactly ONE of tickers, event_ticker,
+  series_ticker, mve_filter (observed 400 "mutually exclusive" when combining series_ticker with
+  mve_filter). No time filters; pages newest close_time first.
+- GET /historical/trades: ticker, min_ts, max_ts, limit <= 1000, cursor, is_block_trade.
+- GET /historical/markets/{ticker}/candlesticks: start_ts, end_ts (inclusive), period_interval
+  in {1, 60, 1440}; at most 5,000 candlesticks per request (observed error).
+- GET /series: returns every series (14,327 observed) with category, fee_type, fee_multiplier.
+- GET /series/fee_changes?show_historical=true and GET /events/fee_changes (cursor).
+- Public rate limit is unpublished; a burst of sequential calls produced 429
+  {"error":{"code":"too_many_requests"}}. Default 2 requests/second with backoff.
 """
 
 from __future__ import annotations
@@ -12,6 +24,8 @@ from typing import Any
 
 from pmcore.venues.http import JsonClient
 
+MAX_CANDLES_PER_REQUEST = 5000
+
 
 class KalshiPublic:
     def __init__(
@@ -20,7 +34,7 @@ class KalshiPublic:
         historical_base_url: str | None = None,
         *,
         ca_bundle: str | None = None,
-        rps: float = 5.0,
+        rps: float = 2.0,
     ) -> None:
         self.live = JsonClient(base_url, ca_bundle=ca_bundle, rps=rps)
         hist = historical_base_url or base_url
@@ -33,58 +47,70 @@ class KalshiPublic:
         if self.hist is not self.live:
             self.hist.close()
 
-    # -- pagination ---------------------------------------------------------------------
     @staticmethod
     def _paginate(
-        client: JsonClient, path: str, params: dict[str, Any], key: str, page_limit: int
-    ) -> Iterator[list[dict[str, Any]]]:
-        cursor: str | None = None
+        client: JsonClient,
+        path: str,
+        params: dict[str, Any],
+        key: str,
+        page_limit: int,
+        start_cursor: str | None = None,
+    ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
+        """Yield (items, next_cursor) so callers can checkpoint the cursor."""
+        cursor: str | None = start_cursor
         while True:
             data = client.get(path, {**params, "limit": page_limit, "cursor": cursor})
             items = data.get(key, []) or []
-            yield items
             cursor = data.get("cursor") or None
+            yield items, cursor
             if not cursor or not items:
                 return
 
-    # -- exchange -----------------------------------------------------------------------
     def exchange_status(self) -> Any:
-        return self.live.get("/exchange/status")  # K-API-1
+        return self.live.get("/exchange/status")
 
-    # -- series and fees ------------------------------------------------------------------
     def series(self, series_ticker: str) -> Any:
-        return self.live.get(f"/series/{series_ticker}")  # K-API-4: fee_type, fee_multiplier
+        return self.live.get(f"/series/{series_ticker}")
 
-    def list_series(self, category: str | None = None) -> Any:
-        return self.live.get("/series", {"category": category})  # K-API-4
+    def list_series(self, category: str | None = None) -> list[dict[str, Any]]:
+        data = self.live.get("/series", {"category": category})
+        return list(data.get("series", []) or [])
 
     def series_fee_changes(self, show_historical: bool = True) -> Any:
         return self.live.get(
             "/series/fee_changes", {"show_historical": str(show_historical).lower()}
-        )  # K-FEE-3
+        )
 
-    def events_fee_changes(self) -> Any:
-        return self.live.get("/events/fee_changes")  # K-FEE-4
+    def events_fee_changes(
+        self, page_limit: int = 1000
+    ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
+        return self._paginate(self.live, "/events/fee_changes", {}, "event_fee_changes", page_limit)
 
-    # -- events and markets (live window) ---------------------------------------------------
+    def event(self, event_ticker: str, with_nested_markets: bool = False) -> Any:
+        return self.live.get(
+            f"/events/{event_ticker}", {"with_nested_markets": str(with_nested_markets).lower()}
+        )
+
     def events(
         self,
         status: str | None = None,
         series_ticker: str | None = None,
-        with_nested_markets: bool = True,
+        min_close_ts: int | None = None,
+        with_nested_markets: bool = False,
         page_limit: int = 200,
-    ) -> Iterator[list[dict[str, Any]]]:
+    ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
         return self._paginate(
             self.live,
             "/events",
             {
                 "status": status,
                 "series_ticker": series_ticker,
+                "min_close_ts": min_close_ts,
                 "with_nested_markets": str(with_nested_markets).lower(),
             },
             "events",
             page_limit,
-        )  # K-API-5
+        )
 
     def markets(
         self,
@@ -93,8 +119,9 @@ class KalshiPublic:
         event_ticker: str | None = None,
         min_close_ts: int | None = None,
         max_close_ts: int | None = None,
+        mve_filter: str | None = None,
         page_limit: int = 1000,
-    ) -> Iterator[list[dict[str, Any]]]:
+    ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
         return self._paginate(
             self.live,
             "/markets",
@@ -104,13 +131,14 @@ class KalshiPublic:
                 "event_ticker": event_ticker,
                 "min_close_ts": min_close_ts,
                 "max_close_ts": max_close_ts,
+                "mve_filter": mve_filter,
             },
             "markets",
             page_limit,
-        )  # K-API-6
+        )
 
     def market(self, ticker: str) -> Any:
-        return self.live.get(f"/markets/{ticker}")  # K-API-6
+        return self.live.get(f"/markets/{ticker}")
 
     def trades(
         self,
@@ -118,8 +146,7 @@ class KalshiPublic:
         min_ts: int | None = None,
         max_ts: int | None = None,
         page_limit: int = 1000,
-    ) -> Iterator[list[dict[str, Any]]]:
-        """Public trade tape with taker_side (K-API-7)."""
+    ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
         return self._paginate(
             self.live,
             "/markets/trades",
@@ -134,33 +161,58 @@ class KalshiPublic:
         return self.live.get(
             f"/series/{series_ticker}/markets/{ticker}/candlesticks",
             {"start_ts": start_ts, "end_ts": end_ts, "period_interval": period_interval},
-        )  # K-API-8
+        )
 
-    # -- historical namespace ---------------------------------------------------------------
     def historical_cutoff(self) -> Any:
-        return self.hist.get("/historical/cutoff")  # K-API-9
+        return self.hist.get("/historical/cutoff")
+
+    def historical_market(self, ticker: str) -> Any:
+        return self.hist.get(f"/historical/markets/{ticker}")
 
     def historical_markets(
-        self, page_limit: int = 1000, **params: Any
-    ) -> Iterator[list[dict[str, Any]]]:
+        self,
+        *,
+        tickers: str | None = None,
+        event_ticker: str | None = None,
+        series_ticker: str | None = None,
+        mve_filter: str | None = "exclude",
+        page_limit: int = 1000,
+        start_cursor: str | None = None,
+    ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
         return self._paginate(
-            self.hist, "/historical/markets", params, "markets", page_limit
-        )  # K-API-10
+            self.hist,
+            "/historical/markets",
+            {
+                "tickers": tickers,
+                "event_ticker": event_ticker,
+                "series_ticker": series_ticker,
+                "mve_filter": mve_filter,
+            },
+            "markets",
+            page_limit,
+            start_cursor,
+        )
 
     def historical_trades(
         self,
         ticker: str | None = None,
         min_ts: int | None = None,
         max_ts: int | None = None,
+        is_block_trade: bool | None = None,
         page_limit: int = 1000,
-    ) -> Iterator[list[dict[str, Any]]]:
+    ) -> Iterator[tuple[list[dict[str, Any]], str | None]]:
         return self._paginate(
             self.hist,
             "/historical/trades",
-            {"ticker": ticker, "min_ts": min_ts, "max_ts": max_ts},
+            {
+                "ticker": ticker,
+                "min_ts": min_ts,
+                "max_ts": max_ts,
+                "is_block_trade": None if is_block_trade is None else str(is_block_trade).lower(),
+            },
             "trades",
             page_limit,
-        )  # K-API-11
+        )
 
     def historical_candlesticks(
         self, ticker: str, start_ts: int, end_ts: int, period_interval: int = 1
@@ -168,4 +220,4 @@ class KalshiPublic:
         return self.hist.get(
             f"/historical/markets/{ticker}/candlesticks",
             {"start_ts": start_ts, "end_ts": end_ts, "period_interval": period_interval},
-        )  # K-API-12
+        )

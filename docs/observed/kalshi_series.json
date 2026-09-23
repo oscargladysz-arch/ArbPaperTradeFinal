@@ -1,0 +1,276 @@
+[
+  {
+    "additional_prohibitions": [
+      "Persons who are employed by any of the Source Agencies are not permitted to trade on the Contract.",
+      "Persons who hold any material, non-public information on the Underlying are not permitted to trade on the Contract."
+    ],
+    "categories": [
+      "Entertainment"
+    ],
+    "category": "Entertainment",
+    "contract_terms_url": "https://assets.kalshi.com/contract_terms/MEDIACOVER.pdf",
+    "contract_url": "https://assets.kalshi.com/regulatory/product-certifications/MEDIACOVER.pdf",
+    "exchange_index": 0,
+    "fee_multiplier": 1,
+    "fee_type": "quadratic",
+    "frequency": "one_off",
+    "last_updated_ts": "2026-08-29T22:19:09.496371Z",
+    "settlement_sources": [
+      {
+        "name": "The Washington Post",
+        "url": "https://www.washingtonpost.com/"
+      },
+      {
+        "name": "Game Informer",
+        "url": "https://www.gameinformer.com"
+      },
+      {
+        "name": "Stereogum",
+        "url": "https://www.stereogum.com"
+      },
+      {
+        "name": "official website of media",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "Kotaku",
+        "url": "https://kotaku.com"
+      },
+      {
+        "name": "NME",
+        "url": "https://www.nme.com"
+      },
+      {
+        "name": "GameSpot",
+        "url": "https://www.gamespot.com"
+      },
+      {
+        "name": "Polygon",
+        "url": "https://polygon.com"
+      },
+      {
+        "name": "Fox News",
+        "url": "https://www.foxnews.com/"
+      },
+      {
+        "name": "media and its parent company or publisher",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "verified social media accounts of the cover subject(s) or creator(s)",
+        "url": "https://www.kalshi.com/"
+      },
+      {
+        "name": "MSNBC",
+        "url": "https://www.msnbc.com/"
+      },
+      {
+        "name": "The Wall Street Journal",
+        "url": "https://www.wsj.com/"
+      },
+      {
+        "name": "Rolling Stone",
+        "url": "https://www.rollingstone.com"
+      },
+      {
+        "name": "The Hollywood Reporter",
+        "url": "https://www.hollywoodreporter.com/"
+      },
+      {
+        "name": "Semafor",
+        "url": "https://www.semafor.com/"
+      },
+      {
+        "name": "The Information",
+        "url": "https://www.theinformation.com/"
+      },
+      {
+        "name": "Publishers Weekly",
+        "url": "https://www.publishersweekly.com"
+      },
+      {
+        "name": "Entertainment Weekly",
+        "url": "https://ew.com/"
+      },
+      {
+        "name": "official social media accounts of media",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "NBC",
+        "url": "https://www.nbcnews.com/"
+      },
+      {
+        "name": "Spin",
+        "url": "https://www.spin.com"
+      },
+      {
+        "name": "Pitchfork",
+        "url": "https://pitchfork.com/"
+      },
+      {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      {
+        "name": "Axios",
+        "url": "https://www.axios.com"
+      },
+      {
+        "name": "the New York Times",
+        "url": "https://www.nytimes.com"
+      },
+      {
+        "name": "IGN",
+        "url": "https://www.ign.com"
+      },
+      {
+        "name": "ABC News",
+        "url": "https://abcnews.go.com/"
+      },
+      {
+        "name": "Variety",
+        "url": "https://variety.com/"
+      },
+      {
+        "name": "CNN",
+        "url": "https://www.cnn.com"
+      },
+      {
+        "name": "Bloomberg News",
+        "url": "https://www.bloomberg.com"
+      },
+      {
+        "name": "Billboard",
+        "url": "https://www.billboard.com/"
+      },
+      {
+        "name": "the Associated Press",
+        "url": "https://apnews.com/"
+      },
+      {
+        "name": "Media Week",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "Politico",
+        "url": "https://www.politico.com/"
+      },
+      {
+        "name": "CBS",
+        "url": "https://www.cbsnews.com/"
+      }
+    ],
+    "tags": [
+      "People",
+      "Video games"
+    ],
+    "ticker": "KXMEDIACOVERSI",
+    "title": "Who will be on the cover of the Sports Illustrated Swimsuit Issue? "
+  },
+  {
+    "additional_prohibitions": [
+      "Persons who are employed by any of the Source Agencies are not permitted to trade on the Contract.",
+      "Persons who hold any material, non-public information on the Underlying are not permitted to trade on the Contract."
+    ],
+    "categories": [
+      "Entertainment"
+    ],
+    "category": "Entertainment",
+    "contract_terms_url": "https://assets.kalshi.com/contract_terms/PODCASTGUEST.pdf",
+    "contract_url": "https://assets.kalshi.com/regulatory/product-certifications/PODCASTGUEST.pdf",
+    "exchange_index": 0,
+    "fee_multiplier": 1,
+    "fee_type": "quadratic",
+    "frequency": "one_off",
+    "last_updated_ts": "2026-08-29T22:27:15.071958Z",
+    "settlement_sources": [
+      {
+        "name": "All-In Podcast",
+        "url": "https://www.youtube.com/@allin"
+      }
+    ],
+    "tags": [
+      "Television"
+    ],
+    "ticker": "KXPODCASTGUESTCALLHERDADDY",
+    "title": "Who will go on Alex Coopers Call her Daddy podcast"
+  },
+  {
+    "additional_prohibitions": [
+      "Persons who are employed by any of the Source Agencies are not permitted to trade on the Contract.",
+      "Persons who hold any material, non-public information on the Underlying are not permitted to trade on the Contract.",
+      "Any candidate currently listed as a market within this event"
+    ],
+    "categories": [
+      "Elections"
+    ],
+    "category": "Elections",
+    "contract_terms_url": "https://assets.kalshi.com/contract_terms/GOVHEAD.pdf",
+    "contract_url": "https://assets.kalshi.com/regulatory/product-certifications/GOVHEAD.pdf",
+    "exchange_index": 0,
+    "fee_multiplier": 1,
+    "fee_type": "quadratic",
+    "frequency": "one_off",
+    "last_updated_ts": "2026-09-23T18:12:23.041018Z",
+    "settlement_sources": [
+      {
+        "name": "parliament or legislature of ",
+        "url": "https://www.parliament.go.ke/"
+      },
+      {
+        "name": "official government gazette or equivalent official publication of ",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "office of the head of state of ",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "major national news outlets of ",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "Financial Times",
+        "url": "https://ft.com/"
+      },
+      {
+        "name": "the Associated Press",
+        "url": "https://apnews.com/"
+      },
+      {
+        "name": "official government websites of ",
+        "url": "https://kalshi.com/"
+      },
+      {
+        "name": "Reuters",
+        "url": "https://www.reuters.com"
+      },
+      {
+        "name": "The Guardian",
+        "url": "https://www.theguardian.com"
+      },
+      {
+        "name": "BBC",
+        "url": "https://www.bbc.co.uk"
+      },
+      {
+        "name": "The Washington Post",
+        "url": "https://www.washingtonpost.com/"
+      },
+      {
+        "name": "Bloomberg News",
+        "url": "https://www.bloomberg.com/news"
+      },
+      {
+        "name": "The New York Times",
+        "url": "https://www.nytimes.com"
+      }
+    ],
+    "tags": [
+      "International elections"
+    ],
+    "ticker": "KXITALYPM",
+    "title": "Prime Minister of Italy after the next election"
+  }
+]

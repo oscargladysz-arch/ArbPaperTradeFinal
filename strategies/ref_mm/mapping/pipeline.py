@@ -31,6 +31,7 @@ from typing import Any
 
 from pmcore.data.checkpoint import checkpoint_dir, read_jsonl
 from pmcore.data.holdout import repo_root
+from pmcore.data.kalshi_markets import iter_markets
 from pmcore.venues.kalshi.normalize import parse_ts
 from pmcore.venues.polymarket.normalize import GammaMarket, NormalizeError
 from strategies.ref_mm.mapping import llm_verify, resolution, sides
@@ -198,7 +199,7 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=None)
     args = ap.parse_args()
     root = repo_root()
-    kalshi = read_jsonl(checkpoint_dir("kalshi") / "markets.jsonl")
+    kalshi = iter_markets()
     poly = [_gamma_from_row(r) for r in read_jsonl(checkpoint_dir("polymarket") / "markets.jsonl")]
     cands = generate_candidates(kalshi, poly)
     if args.limit:

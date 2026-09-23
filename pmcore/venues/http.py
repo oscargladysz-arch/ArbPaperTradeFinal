@@ -9,6 +9,7 @@ import json
 import logging
 import random
 import time
+from decimal import Decimal
 from typing import Any
 
 import httpx
@@ -100,7 +101,8 @@ class JsonClient:
             if resp.status_code >= 400:
                 raise HttpError(resp.status_code, str(resp.url), resp.text)
             try:
-                return resp.json()
+                # Floats become Decimal (rule 5): Polymarket serves prices and sizes as JSON numbers.
+                return json.loads(resp.text, parse_float=Decimal)
             except json.JSONDecodeError as exc:
                 raise HttpError(
                     resp.status_code, str(resp.url), f"non-JSON body: {resp.text[:200]}"

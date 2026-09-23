@@ -1,0 +1,17 @@
+{
+    "cursor": "",
+    "trades": [
+        {
+            "count_fp": "22.88",
+            "created_time": "2026-07-24T23:41:49.680136Z",
+            "is_block_trade": false,
+            "no_price_dollars": "0.7930",
+            "taker_book_side": "bid",
+            "taker_outcome_side": "yes",
+            "taker_side": "yes",
+            "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S20263D38CE57B66-C68BA939FFD",
+            "trade_id": "ffee9a75-8776-5cd3-a9c4-2c95d3846b1e",
+            "yes_price_dollars": "0.2070"
+        }
+    ]
+}

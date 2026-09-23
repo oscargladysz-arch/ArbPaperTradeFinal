@@ -67,8 +67,8 @@ class GammaMarket:
             "market_id": self.market_id,
             "condition_id": self.condition_id,
             "question": self.question,
-            "outcomes": json.dumps(list(self.outcomes)),
-            "token_ids": json.dumps(list(self.token_ids)),
+            "outcomes": json.dumps(list(self.outcomes), default=str),
+            "token_ids": json.dumps(list(self.token_ids), default=str),
             "description": self.description,
             "end_date": self.end_date,
             "closed": self.closed,
@@ -96,7 +96,7 @@ def parse_gamma_market(raw: dict[str, Any]) -> GammaMarket:
         end_date=raw.get("endDate"),
         closed=bool(raw.get("closed", False)),
         event_id=event_id,
-        raw=json.dumps(raw, sort_keys=True, separators=(",", ":")),
+        raw=json.dumps(raw, sort_keys=True, separators=(",", ":"), default=str),
     )
 
 
@@ -135,7 +135,10 @@ def normalize_data_api_trade(
     side = str(raw.get("side", "")).upper()
     if side not in ("BUY", "SELL"):
         raise NormalizeError(f"side must be BUY or SELL, got {raw.get('side')!r}")
-    token = str(raw.get("asset", ""))
+    # P-API-2 (VERIFIED 2026-09-23): Data API v2 rows use token_id / transaction_hash / outcome_index;
+    # v1 rows use asset / transactionHash. Prices and sizes arrive as JSON numbers, parsed as Decimal
+    # by pmcore.venues.http.JsonClient.
+    token = str(raw.get("token_id") or raw.get("asset") or "")
     price = ticks_from_decimal_dollars(str(raw["price"]))
     ts_raw = raw.get("timestamp")
     if isinstance(ts_raw, str) and ts_raw.isdigit():
@@ -155,13 +158,13 @@ def normalize_data_api_trade(
         raise NormalizeError(f"trade token {token} is neither reference nor other token")
     size = Decimal(str(raw.get("size", "0")))
     return PolyPrint(
-        condition_id=str(raw.get("conditionId", "")),
+        condition_id=str(raw.get("condition_id") or raw.get("conditionId") or ""),
         ts=ts,
         taker_dir=taker,
         yes_price_ticks=yes_price,
         size_x100=int(size * 100),
         token_id=token,
         on_reference_token=on_ref,
-        tx_hash=str(raw.get("transactionHash", "")),
-        raw=json.dumps(raw, sort_keys=True, separators=(",", ":")),
+        tx_hash=str(raw.get("transaction_hash") or raw.get("transactionHash") or ""),
+        raw=json.dumps(raw, sort_keys=True, separators=(",", ":"), default=str),
     )

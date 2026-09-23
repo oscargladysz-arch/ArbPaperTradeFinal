@@ -75,3 +75,15 @@ def test_regime_lookup() -> None:
 def test_unknown_fee_type_refused() -> None:
     with pytest.raises(fees.FeeError):
         fees.FeeRegime("X", fees.utc(2025, 1, 1), "flat", ONE, ZERO, "test")
+
+
+def test_fee_type_semantics() -> None:
+    assert fees.maker_multiplier_from("quadratic", Decimal(1)) == 0
+    assert fees.maker_multiplier_from("quadratic_with_maker_fees", Decimal(1)) == 1
+    assert fees.maker_multiplier_from("quadratic_with_maker_fees", Decimal("0.5")) == Decimal("0.5")
+    with pytest.raises(fees.FeeError):
+        fees.maker_multiplier_from("margin_market_maker_program_fees", Decimal(1))
+    r = fees.FeeRegime.from_api(
+        "KXNBA", fees.utc(2026, 1, 1), "quadratic_with_maker_fees", "1", "test"
+    )
+    assert r.maker_multiplier == 1 and r.taker_multiplier == 1
